@@ -1,0 +1,198 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import Inter font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Custom base styles */
+@layer base {
+    /* Smoother scrolling */
+    html {
+        scroll-behavior: smooth;
+    }
+    
+    /* Dark mode text selection */
+    ::selection {
+        @apply bg-primary-500 text-white;
+    }
+    
+    .dark ::selection {
+        @apply bg-primary-400 text-gray-900;
+    }
+    
+    /* Focus styles */
+    *:focus-visible {
+        @apply outline-none ring-2 ring-primary-500 ring-offset-2 ring-offset-white dark:ring-offset-gray-900;
+    }
+}
+
+/* Component styles */
+@layer components {
+    /* Button styles */
+    .btn {
+        @apply inline-flex items-center justify-center px-4 py-2 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors;
+    }
+    
+    .btn-primary {
+        @apply btn bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500;
+    }
+    
+    .btn-secondary {
+        @apply btn bg-secondary-500 text-white hover:bg-secondary-600 focus:ring-secondary-500;
+    }
+    
+    .btn-outline {
+        @apply btn border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 focus:ring-primary-500;
+    }
+    
+    /* Card styles */
+    .card {
+        @apply bg-white dark:bg-gray-800 rounded-lg shadow-card overflow-hidden transition-all;
+    }
+    
+    .card-hover {
+        @apply hover:shadow-card-hover;
+    }
+    
+    /* Form controls */
+    .form-input {
+        @apply block w-full rounded-md border-gray-300 dark:border-gray-700 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-800 dark:text-white sm:text-sm;
+    }
+    
+    .form-select {
+        @apply block w-full rounded-md border-gray-300 dark:border-gray-700 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-800 dark:text-white sm:text-sm;
+    }
+    
+    .form-checkbox {
+        @apply rounded border-gray-300 dark:border-gray-700 text-primary-500 shadow-sm focus:border-primary-500 focus:ring-primary-500;
+    }
+    
+    .form-label {
+        @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+    }
+    
+    /* Badge styles */
+    .badge {
+        @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    }
+    
+    .badge-blue {
+        @apply badge bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200;
+    }
+    
+    .badge-green {
+        @apply badge bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200;
+    }
+    
+    .badge-red {
+        @apply badge bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200;
+    }
+    
+    .badge-yellow {
+        @apply badge bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200;
+    }
+    
+    /* Navigation tabs */
+    .tab {
+        @apply inline-block px-5 py-2.5 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-700;
+    }
+    
+    .tab-active {
+        @apply border-primary-500 text-primary-600 dark:text-primary-400;
+    }
+}
+
+/* Utility classes */
+@layer utilities {
+    /* Container padding for responsive design */
+    .container-padding {
+        @apply px-4 sm:px-6 lg:px-8;
+    }
+    
+    /* Responsive typography */
+    .h1 {
+        @apply text-4xl font-bold md:text-5xl;
+    }
+    
+    .h2 {
+        @apply text-3xl font-bold md:text-4xl;
+    }
+    
+    .h3 {
+        @apply text-2xl font-bold md:text-3xl;
+    }
+    
+    .h4 {
+        @apply text-xl font-bold md:text-2xl;
+    }
+    
+    /* Custom animations */
+    .animate-hover {
+        @apply transition-all duration-300 ease-in-out;
+    }
+    
+    .animate-pulse-slow {
+        animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.6;
+        }
+    }
+    
+    /* Scrollbar customization (Webkit browsers) */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-track {
+        @apply bg-gray-100 dark:bg-gray-800;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        @apply bg-gray-400 dark:bg-gray-500;
+    }
+}
+
+/* Mobile-specific styles */
+@media (max-width: 640px) {
+    /* Additional mobile-specific styles */
+    .mobile-menu-height {
+        max-height: calc(100vh - 4rem);
+        overflow-y: auto;
+    }
+    
+    /* Improve tap targets on mobile */
+    button, a {
+        @apply min-h-[44px] min-w-[44px];
+    }
+    
+    /* Custom button styles for mobile - easier touch targets */
+    .btn-mobile {
+        @apply py-3 px-6 text-base;
+    }
+}
+
+/* Print styles */
+@media print {
+    /* Hide elements when printing */
+    .no-print {
+        display: none !important;
+    }
+    
+    /* Ensure background colors are printed */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+}
