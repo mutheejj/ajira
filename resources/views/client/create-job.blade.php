@@ -74,6 +74,7 @@
                     <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                     <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Tip: Be specific about deliverables, timeline, and required experience to attract the right candidates.</p>
+                    <input type="hidden" id="requirements" name="requirements" value="{{ old('description') }}">
                 </div>
                 
                 <!-- Category -->
@@ -270,6 +271,7 @@
                     @error('status')
                     <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
+                    <input type="hidden" name="duration" value="30">
                 </div>
                 
                 <!-- Attachment -->
@@ -318,6 +320,16 @@
 @section('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Update requirements field when description changes
+        const descriptionField = document.getElementById('description');
+        const requirementsField = document.getElementById('requirements');
+        
+        if (descriptionField && requirementsField) {
+            descriptionField.addEventListener('input', function() {
+                requirementsField.value = this.value;
+            });
+        }
+        
         // Initialize Select2 for skills multi-select
         try {
             $('#skills').select2({

@@ -201,6 +201,7 @@ class ClientController extends Controller
                 'location' => 'nullable|string|max:100',
                 'attachment' => 'nullable|file|max:5120',
                 'status' => 'nullable|string|in:draft,active',
+                'duration' => 'nullable|integer|min:1',
             ]);
             
             \Log::info('Job post validation passed', ['skills' => $request->skills]);
@@ -218,6 +219,7 @@ class ClientController extends Controller
             $jobPost->title = $request->title;
             $jobPost->category = $request->category;
             $jobPost->description = $request->description;
+            $jobPost->requirements = $request->description; // Use description as requirements for now
             
             // Ensure skills is properly encoded as JSON
             if (is_array($request->skills)) {
@@ -236,6 +238,7 @@ class ClientController extends Controller
             $jobPost->location_type = $request->location_type;
             $jobPost->location = $request->location;
             $jobPost->status = $request->status ?? 'active';
+            $jobPost->duration = $request->duration ?? 30; // Default duration of 30 days
             
             // Handle attachment if provided
             if ($request->hasFile('attachment') && $request->file('attachment')->isValid()) {
