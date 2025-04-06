@@ -279,6 +279,56 @@ class AdminController extends Controller
     }
     
     /**
+     * Approve a job.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function approveJob($id)
+    {
+        $job = JobPost::findOrFail($id);
+        
+        if ($job->status == 'pending') {
+            $job->status = 'active';
+            $job->save();
+            
+            // Notify the client that their job was approved
+            // You can implement notification logic here
+            
+            return redirect()->route('admin.jobs.show', $job->id)
+                ->with('success', 'Job has been approved and is now active.');
+        }
+        
+        return redirect()->route('admin.jobs.show', $job->id)
+            ->with('error', 'This job is not in pending status.');
+    }
+    
+    /**
+     * Close a job.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function closeJob($id)
+    {
+        $job = JobPost::findOrFail($id);
+        
+        if ($job->status != 'closed') {
+            $job->status = 'closed';
+            $job->save();
+            
+            // Notify the client that their job was closed
+            // You can implement notification logic here
+            
+            return redirect()->route('admin.jobs.show', $job->id)
+                ->with('success', 'Job has been closed successfully.');
+        }
+        
+        return redirect()->route('admin.jobs.show', $job->id)
+            ->with('error', 'This job is already closed.');
+    }
+    
+    /**
      * Delete a job.
      *
      * @param  int  $id
@@ -322,10 +372,73 @@ class AdminController extends Controller
      */
     public function updateSettings(Request $request)
     {
-        // This would normally update .env file or settings table
-        // For demo purposes, we'll just return success message
+        // Update settings logic
+        // ...
         
         return redirect()->route('admin.settings')
             ->with('success', 'Settings updated successfully.');
+    }
+    
+    /**
+     * Show application details.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function showApplication($id)
+    {
+        $application = \App\Models\Application::with(['job', 'jobSeeker'])->findOrFail($id);
+        
+        return view('admin.applications.show', compact('application'));
+    }
+    
+    /**
+     * Accept an application.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function acceptApplication($id)
+    {
+        $application = \App\Models\Application::findOrFail($id);
+        
+        if ($application->status == 'pending') {
+            $application->status = 'accepted';
+            $application->save();
+            
+            // Notify the job seeker that their application was accepted
+            // You can implement notification logic here
+            
+            return redirect()->route('admin.applications.show', $application->id)
+                ->with('success', 'Application has been accepted.');
+        }
+        
+        return redirect()->route('admin.applications.show', $application->id)
+            ->with('error', 'This application is not in pending status.');
+    }
+    
+    /**
+     * Reject an application.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function rejectApplication($id)
+    {
+        $application = \App\Models\Application::findOrFail($id);
+        
+        if ($application->status == 'pending') {
+            $application->status = 'rejected';
+            $application->save();
+            
+            // Notify the job seeker that their application was rejected
+            // You can implement notification logic here
+            
+            return redirect()->route('admin.applications.show', $application->id)
+                ->with('success', 'Application has been rejected.');
+        }
+        
+        return redirect()->route('admin.applications.show', $application->id)
+            ->with('error', 'This application is not in pending status.');
     }
 }

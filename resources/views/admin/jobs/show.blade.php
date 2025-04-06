@@ -3,220 +3,233 @@
 @section('title', 'Job Details')
 
 @section('content')
-<div class="container mx-auto px-6">
-    <div class="mb-6">
-        <a href="{{ route('admin.jobs') }}" class="inline-flex items-center text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-            </svg>
-            Back to Jobs
-        </a>
+<div class="container mx-auto px-6 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-semibold text-gray-900 dark:text-white">Job Details</h1>
+        <div class="flex space-x-3">
+            <a href="{{ route('admin.jobs') }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                </svg>
+                Back to Jobs
+            </a>
+            
+            @if($job->status == 'pending')
+            <form action="{{ route('admin.jobs.approve', $job->id) }}" method="POST" class="inline">
+                @csrf
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Approve Job
+                </button>
+            </form>
+            @endif
+            
+            @if($job->status != 'closed')
+            <form action="{{ route('admin.jobs.close', $job->id) }}" method="POST" class="inline">
+                @csrf
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Close Job
+                </button>
+            </form>
+            @endif
+        </div>
     </div>
 
     <!-- Job Details Card -->
-    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden mb-6">
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between">
-            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ $job->title }}</h1>
+    <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-6">
+        <div class="px-4 py-5 sm:px-6 flex justify-between">
             <div>
-                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
-                    @if($job->status == 'active') bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
-                    @elseif($job->status == 'closed') bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200
-                    @elseif($job->status == 'draft') bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
-                    @else bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 @endif">
-                    {{ ucfirst($job->status) }}
-                </span>
+                <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">{{ $job->title }}</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">Posted {{ $job->created_at->diffForHumans() }}</p>
             </div>
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                @if($job->status == 'active') bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                @elseif($job->status == 'closed') bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200
+                @elseif($job->status == 'draft') bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
+                @elseif($job->status == 'pending') bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200
+                @else bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 @endif">
+                {{ ucfirst($job->status) }}
+            </span>
         </div>
-
-        <div class="p-6">
-            <!-- Client Information -->
-            <div class="mb-6">
-                <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Client Information</h2>
-                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0 h-12 w-12 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold">
-                            {{ substr($job->client->name, 0, 1) }}
-                        </div>
-                        <div class="ml-4">
-                            <div class="text-md font-medium text-gray-900 dark:text-white">{{ $job->client->name }}</div>
-                            <div class="text-sm text-gray-500 dark:text-gray-400">{{ $job->client->email }}</div>
-                            @if($job->client->company_name)
-                                <div class="text-sm text-gray-500 dark:text-gray-400">{{ $job->client->company_name }}</div>
-                            @endif
-                        </div>
-                    </div>
+        <div class="border-t border-gray-200 dark:border-gray-700">
+            <dl>
+                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-300">Job Category</dt>
+                    <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">{{ $job->category }}</dd>
                 </div>
-            </div>
-
-            <!-- Job Information -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div>
-                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Category</h3>
-                    <p class="text-md text-gray-900 dark:text-white">{{ $job->category }}</p>
+                <div class="bg-white dark:bg-gray-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-300">Budget</dt>
+                    <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">
+                        <span class="font-medium">{{ $job->currency == 'USD' ? '$' : 'KSH ' }}{{ number_format($job->budget, 0) }}</span>
+                        <span class="text-gray-500 dark:text-gray-400 ml-2">{{ $job->budget_type == 'fixed' ? '(Fixed)' : '(Hourly)' }}</span>
+                    </dd>
                 </div>
-                <div>
-                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Budget</h3>
-                    <p class="text-md text-gray-900 dark:text-white">
-                        {{ $job->currency == 'USD' ? '$' : 'KSH ' }}{{ number_format($job->budget, 2) }}
-                    </p>
+                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-300">Duration</dt>
+                    <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">{{ $job->duration }}</dd>
                 </div>
-                <div>
-                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Experience Level</h3>
-                    <p class="text-md text-gray-900 dark:text-white">{{ ucfirst($job->experience_level) }}</p>
+                <div class="bg-white dark:bg-gray-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-300">Experience Level</dt>
+                    <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">{{ ucfirst($job->experience_level) }}</dd>
                 </div>
-                <div>
-                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Project Type</h3>
-                    <p class="text-md text-gray-900 dark:text-white">{{ ucfirst(str_replace('_', ' ', $job->project_type)) }}</p>
+            </dl>
+        </div>
+    </div>
+    
+    <!-- Client Info Card -->
+    <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-6">
+        <div class="px-4 py-5 sm:px-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Client Information</h3>
+        </div>
+        <div class="border-t border-gray-200 dark:border-gray-700">
+            <dl>
+                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-300">Client Name</dt>
+                    <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">
+                        <a href="{{ route('admin.users.show', $job->client->id) }}" class="text-indigo-600 dark:text-indigo-400 hover:underline">
+                            {{ $job->client->name }}
+                        </a>
+                    </dd>
                 </div>
-                <div>
-                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Duration</h3>
-                    <p class="text-md text-gray-900 dark:text-white">{{ $job->duration }} days</p>
+                <div class="bg-white dark:bg-gray-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-300">Email</dt>
+                    <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">{{ $job->client->email }}</dd>
                 </div>
-                <div>
-                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Location</h3>
-                    <p class="text-md text-gray-900 dark:text-white">
-                        @if($job->remote_work)
-                            Remote
-                        @else
-                            {{ $job->location ?? 'Not specified' }}
-                        @endif
-                    </p>
+                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-300">Member Since</dt>
+                    <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">{{ $job->client->created_at->format('M d, Y') }}</dd>
                 </div>
-            </div>
-
-            <!-- Job Description -->
-            <div class="mb-6">
-                <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Description</h2>
-                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                    <div class="prose prose-indigo dark:prose-invert max-w-none">
-                        {{ $job->description }}
-                    </div>
+                <div class="bg-white dark:bg-gray-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-300">Total Jobs Posted</dt>
+                    <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">{{ $job->client->jobs->count() }}</dd>
                 </div>
-            </div>
-
-            <!-- Job Requirements -->
-            <div class="mb-6">
-                <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Requirements</h2>
-                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                    <div class="prose prose-indigo dark:prose-invert max-w-none">
-                        {{ $job->requirements }}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Skills -->
-            <div class="mb-6">
-                <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Skills</h2>
-                <div class="flex flex-wrap gap-2">
-                    @foreach(json_decode($job->skills) as $skill)
-                        <span class="px-3 py-1 bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 rounded-full text-sm">
-                            {{ $skill }}
-                        </span>
-                    @endforeach
-                </div>
-            </div>
-
-            <!-- Job Actions -->
-            <div class="border-t border-gray-200 dark:border-gray-700 pt-6 flex flex-wrap gap-4 justify-end">
-                <form action="{{ route('admin.jobs.update-status', $job->id) }}" method="POST" class="inline-block">
-                    @csrf
-                    @method('PUT')
-                    <input type="hidden" name="status" value="{{ $job->status == 'active' ? 'closed' : 'active' }}">
-                    <button type="submit" class="px-4 py-2 rounded-md 
-                        @if($job->status == 'active') 
-                            bg-red-600 hover:bg-red-700 text-white 
-                        @else 
-                            bg-green-600 hover:bg-green-700 text-white 
-                        @endif">
-                        {{ $job->status == 'active' ? 'Close Job' : 'Activate Job' }}
-                    </button>
-                </form>
-                
-                <form action="{{ route('admin.jobs.delete', $job->id) }}" method="POST" class="inline-block">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md" onclick="return confirm('Are you sure you want to delete this job? This action cannot be undone.')">
-                        Delete Job
-                    </button>
-                </form>
+            </dl>
+        </div>
+    </div>
+    
+    <!-- Description Card -->
+    <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-6">
+        <div class="px-4 py-5 sm:px-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Job Description</h3>
+        </div>
+        <div class="border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:px-6">
+            <div class="prose dark:prose-invert max-w-none">
+                {!! nl2br(e($job->description)) !!}
             </div>
         </div>
     </div>
-
-    <!-- Applications Section -->
-    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Applications ({{ $job->applications->count() }})</h2>
+    
+    <!-- Requirements Card -->
+    <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-6">
+        <div class="px-4 py-5 sm:px-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Requirements</h3>
         </div>
-
-        <div class="divide-y divide-gray-200 dark:divide-gray-700">
-            @forelse($job->applications as $application)
-                <div class="p-6">
-                    <div class="flex flex-wrap md:flex-nowrap items-start justify-between">
-                        <div class="flex items-center mb-4 md:mb-0">
-                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold">
-                                {{ substr($application->user->name, 0, 1) }}
-                            </div>
-                            <div class="ml-4">
-                                <div class="text-md font-medium text-gray-900 dark:text-white">{{ $application->user->name }}</div>
-                                <div class="text-sm text-gray-500 dark:text-gray-400">{{ $application->user->email }}</div>
-                                <div class="text-sm text-gray-500 dark:text-gray-400">Applied: {{ $application->created_at->format('M d, Y') }}</div>
-                            </div>
-                        </div>
-                        
-                        <div class="flex flex-col items-end">
-                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
-                                @if($application->status == 'pending') bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
-                                @elseif($application->status == 'accepted') bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
-                                @elseif($application->status == 'rejected') bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200
-                                @else bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 @endif">
-                                {{ ucfirst($application->status) }}
-                            </span>
-                            
-                            <div class="mt-2 flex gap-2">
-                                @if($application->status == 'pending')
-                                    <form action="{{ route('applications.update-status', $application->id) }}" method="POST" class="inline-block">
+        <div class="border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:px-6">
+            <div class="prose dark:prose-invert max-w-none">
+                {!! nl2br(e($job->requirements)) !!}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Skills Card -->
+    @if(count($job->skills) > 0)
+    <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-6">
+        <div class="px-4 py-5 sm:px-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Required Skills</h3>
+        </div>
+        <div class="border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:px-6">
+            <div class="flex flex-wrap gap-2">
+                @foreach($job->skills as $skill)
+                <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
+                    {{ $skill->name }}
+                </span>
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif
+    
+    <!-- Applications Card -->
+    <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Job Applications ({{ $job->applications->count() }})</h3>
+        </div>
+        <div class="border-t border-gray-200 dark:border-gray-700">
+            @if($job->applications->count() > 0)
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Applicant</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Bid Amount</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Applied On</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            @foreach($job->applications as $application)
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold">
+                                            {{ substr($application->jobSeeker->name, 0, 1) }}
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900 dark:text-white">
+                                                <a href="{{ route('admin.users.show', $application->jobSeeker->id) }}" class="hover:underline">
+                                                    {{ $application->jobSeeker->name }}
+                                                </a>
+                                            </div>
+                                            <div class="text-sm text-gray-500 dark:text-gray-400">{{ $application->jobSeeker->email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900 dark:text-white">{{ $job->currency == 'USD' ? '$' : 'KSH ' }}{{ number_format($application->bid_amount, 0) }}</div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">{{ $application->delivery_time }} delivery</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        @if($application->status == 'accepted') bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                                        @elseif($application->status == 'rejected') bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200
+                                        @else bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 @endif">
+                                        {{ ucfirst($application->status) }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                    {{ $application->created_at->format('M d, Y') }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <a href="{{ route('admin.applications.show', $application->id) }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 mr-3">View</a>
+                                    
+                                    @if($application->status == 'pending')
+                                    <form action="{{ route('admin.applications.accept', $application->id) }}" method="POST" class="inline">
                                         @csrf
-                                        @method('PATCH')
-                                        <input type="hidden" name="status" value="accepted">
-                                        <button type="submit" class="px-2 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs">
-                                            Accept
-                                        </button>
+                                        <button type="submit" class="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 mr-3">Accept</button>
                                     </form>
                                     
-                                    <form action="{{ route('applications.update-status', $application->id) }}" method="POST" class="inline-block">
+                                    <form action="{{ route('admin.applications.reject', $application->id) }}" method="POST" class="inline">
                                         @csrf
-                                        @method('PATCH')
-                                        <input type="hidden" name="status" value="rejected">
-                                        <button type="submit" class="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs">
-                                            Reject
-                                        </button>
+                                        <button type="submit" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">Reject</button>
                                     </form>
-                                @endif
-                                
-                                @if($application->attachment)
-                                    <a href="{{ route('applications.download', $application->id) }}" class="px-2 py-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white rounded text-xs">
-                                        Download CV
-                                    </a>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                    
-                    @if($application->cover_letter)
-                        <div class="mt-4">
-                            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Cover Letter</h3>
-                            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                                <p class="text-gray-700 dark:text-gray-300 whitespace-pre-line">{{ $application->cover_letter }}</p>
-                            </div>
-                        </div>
-                    @endif
+                                    @endif
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
-            @empty
-                <div class="p-6 text-center text-gray-500 dark:text-gray-400">
-                    No applications received yet.
+            @else
+                <div class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                    No applications received for this job yet.
                 </div>
-            @endforelse
+            @endif
         </div>
     </div>
 </div>

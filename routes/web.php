@@ -214,6 +214,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/jobs/{id}', [AdminController::class, 'showJob'])->name('jobs.show');
     Route::put('/jobs/{id}/status', [AdminController::class, 'updateJobStatus'])->name('jobs.update-status');
     Route::delete('/jobs/{id}', [AdminController::class, 'deleteJob'])->name('jobs.delete');
+    Route::post('/jobs/{id}/approve', [AdminController::class, 'approveJob'])->name('jobs.approve');
+    Route::post('/jobs/{id}/close', [AdminController::class, 'closeJob'])->name('jobs.close');
+    
+    // Application management
+    Route::get('/applications/{id}', [AdminController::class, 'showApplication'])->name('applications.show');
+    Route::post('/applications/{id}/accept', [AdminController::class, 'acceptApplication'])->name('applications.accept');
+    Route::post('/applications/{id}/reject', [AdminController::class, 'rejectApplication'])->name('applications.reject');
     
     // Settings
     Route::get('/settings', [AdminController::class, 'settings'])->name('settings');

@@ -99,7 +99,7 @@ class AuthController extends Controller
         if ($user->user_type === 'client') {
             return redirect()->route('client.dashboard')->with('success', 'Account created successfully! Please check your email to verify your account.');
         } else {
-            return redirect()->route('job-seeker.dashboard')->with('success', 'Account created successfully! Please check your email to verify your account.');
+            return redirect()->route('jobseeker.dashboard')->with('success', 'Account created successfully! Please check your email to verify your account.');
         }
     }
 
