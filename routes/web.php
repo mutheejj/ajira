@@ -14,6 +14,8 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\FreelancerController;
+use App\Http\Controllers\ApplicationController;
+use App\Http\Controllers\ClientController;
 
 /*
 |--------------------------------------------------------------------------
@@ -96,6 +98,10 @@ Route::group(['middleware' => 'guest'], function () {
 
 // Authentication Required Routes
 Route::middleware(['auth'])->group(function () {
+    // Profile Management
+    Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+
     // Logout
     Route::post('/logout', [App\Http\Controllers\Auth\AuthController::class, 'logout'])->name('logout');
     
@@ -115,17 +121,42 @@ Route::middleware(['auth'])->group(function () {
     // Client dashboard
     Route::middleware(['client'])->group(function () {
         Route::get('/client/dashboard', [App\Http\Controllers\HomeController::class, 'clientDashboard'])->name('client.dashboard');
+        Route::get('/client/jobs', [JobPostController::class, 'clientJobs'])->name('client.jobs');
+        Route::get('/client/jobs/create', [JobPostController::class, 'create'])->name('client.jobs.create');
+        Route::post('/client/jobs', [JobPostController::class, 'store'])->name('client.jobs.store');
+        Route::get('/client/jobs/{jobPost}/edit', [JobPostController::class, 'edit'])->name('client.jobs.edit');
+        Route::put('/client/jobs/{jobPost}', [JobPostController::class, 'update'])->name('client.jobs.update');
+        Route::delete('/client/jobs/{jobPost}', [JobPostController::class, 'destroy'])->name('client.jobs.destroy');
     });
     
     // Job seeker dashboard
     Route::middleware(['job-seeker'])->group(function () {
-        Route::get('/job-seeker/dashboard', [App\Http\Controllers\HomeController::class, 'jobSeekerDashboard'])->name('job-seeker.dashboard');
+        Route::get('/jobseeker/dashboard', [HomeController::class, 'jobseekerDashboard'])->name('jobseeker.dashboard');
+        Route::get('/applications', [JobApplicationController::class, 'index'])->name('applications.index');
+        Route::get('/jobs/{jobId}/apply', [JobApplicationController::class, 'create'])->name('applications.create');
+        Route::post('/jobs/{jobId}/apply', [JobApplicationController::class, 'store'])->name('applications.store');
+        Route::delete('/applications/{id}/withdraw', [JobApplicationController::class, 'withdraw'])->name('applications.withdraw');
+        
+        // Saved jobs
+        Route::get('/saved-jobs', [SavedJobController::class, 'index'])->name('saved-jobs.index');
+        Route::post('/jobs/{jobId}/save', [SavedJobController::class, 'store'])->name('saved-jobs.store');
+        Route::delete('/saved-jobs/{id}', [SavedJobController::class, 'destroy'])->name('saved-jobs.destroy');
     });
     
     // Admin dashboard
     Route::middleware(['admin'])->group(function () {
         Route::get('/admin/dashboard', [App\Http\Controllers\HomeController::class, 'adminDashboard'])->name('admin.dashboard');
     });
+
+    // Application routes
+    Route::get('/jobs/{jobId}/apply', [App\Http\Controllers\ApplicationController::class, 'create'])->name('applications.create');
+    Route::post('/jobs/{jobId}/applications', [App\Http\Controllers\ApplicationController::class, 'store'])->name('applications.store');
+    Route::get('/applications/{id}', [App\Http\Controllers\ApplicationController::class, 'show'])->name('applications.show');
+    Route::patch('/applications/{id}/status', [App\Http\Controllers\ApplicationController::class, 'updateStatus'])->name('applications.update-status');
+    Route::patch('/applications/{id}/withdraw', [App\Http\Controllers\ApplicationController::class, 'withdraw'])->name('applications.withdraw');
+    Route::get('/jobs/{jobId}/applications', [App\Http\Controllers\ApplicationController::class, 'listByJob'])->name('applications.list');
+    Route::get('/my-applications', [App\Http\Controllers\ApplicationController::class, 'myApplications'])->name('applications.my');
+    Route::get('/applications/{id}/download', [App\Http\Controllers\ApplicationController::class, 'downloadAttachment'])->name('applications.download');
 });
 
 // Job posts
@@ -142,39 +173,13 @@ Route::get('/freelancers/{freelancer}', [FreelancerController::class, 'show'])->
 Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
 Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');
 
-// Authenticated routes
-Route::middleware(['auth'])->group(function () {
-    // Dashboard routes
-    Route::get('/dashboard', [HomeController::class, 'dashboard'])->name('dashboard');
-
-    // Profile routes
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    
-    // Client routes
-    Route::middleware(['client'])->group(function () {
-        Route::get('/client/dashboard', [HomeController::class, 'clientDashboard'])->name('client.dashboard');
-        Route::get('/client/jobs', [JobPostController::class, 'clientJobs'])->name('client.jobs');
-        Route::resource('jobs', JobPostController::class)->except(['index', 'show']);
-        Route::get('/jobs/{jobId}/applications', [JobApplicationController::class, 'applicationsForJob'])->name('jobs.applications');
-        Route::post('/applications/{id}/status', [JobApplicationController::class, 'updateStatus'])->name('applications.update-status');
-        Route::post('/applications/{id}/advance', [JobApplicationController::class, 'advanceStep'])->name('applications.advance-step');
-    });
-
-    // Job seeker routes
-    Route::middleware(['job-seeker'])->group(function () {
-        Route::get('/jobseeker/dashboard', [HomeController::class, 'jobseekerDashboard'])->name('jobseeker.dashboard');
-        Route::get('/applications', [JobApplicationController::class, 'index'])->name('applications.index');
-        Route::get('/jobs/{jobId}/apply', [JobApplicationController::class, 'create'])->name('applications.create');
-        Route::post('/jobs/{jobId}/apply', [JobApplicationController::class, 'store'])->name('applications.store');
-        Route::delete('/applications/{id}/withdraw', [JobApplicationController::class, 'withdraw'])->name('applications.withdraw');
-        
-        // Saved jobs
-        Route::get('/saved-jobs', [SavedJobController::class, 'index'])->name('saved-jobs.index');
-        Route::post('/jobs/{jobId}/save', [SavedJobController::class, 'store'])->name('saved-jobs.store');
-        Route::delete('/saved-jobs/{id}', [SavedJobController::class, 'destroy'])->name('saved-jobs.destroy');
-    });
-
-    // Shared routes
-    Route::get('/applications/{id}', [JobApplicationController::class, 'show'])->name('applications.show');
+// Client Routes
+Route::middleware(['auth', 'client'])->prefix('client')->name('client.')->group(function () {
+    Route::get('/dashboard', [ClientController::class, 'dashboard'])->name('dashboard');
+    Route::get('/jobs', [ClientController::class, 'jobs'])->name('jobs');
+    Route::get('/create-job', [ClientController::class, 'createJob'])->name('create-job');
+    Route::get('/profile', [ClientController::class, 'profile'])->name('profile');
+    Route::patch('/profile', [ClientController::class, 'updateProfile'])->name('update-profile');
+    Route::get('/billing', [ClientController::class, 'billing'])->name('billing');
+    Route::get('/email-verification', [ClientController::class, 'emailVerification'])->name('verify-email');
 });

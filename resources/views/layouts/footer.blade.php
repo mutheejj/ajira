@@ -16,7 +16,6 @@
                     <a href="{{ route('contract-to-hire') }}" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Contract-to-hire</a>
                     <a href="{{ route('direct-contracts') }}" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Direct Contracts</a>
                     <a href="{{ route('hire-worldwide') }}" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Hire worldwide</a>
-                    <a href="{{ route('hire-us') }}" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Hire in the USA</a>
                 </div>
             </div>
 
@@ -27,7 +26,6 @@
                     <a href="{{ route('how-to-find-work') }}" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">How to find work</a>
                     <a href="{{ route('direct-contracts-talent') }}" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Direct Contracts</a>
                     <a href="{{ route('find-jobs-worldwide') }}" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Find freelance jobs worldwide</a>
-                    <a href="{{ route('find-jobs-usa') }}" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Find freelance jobs in the USA</a>
                     <a href="{{ route('win-work-ads') }}" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Win work with ads</a>
                     <a href="{{ route('freelancer-plus') }}" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Exclusive resources with Freelancer Plus</a>
                 </div>

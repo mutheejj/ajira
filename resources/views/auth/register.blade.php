@@ -182,7 +182,8 @@
                             <div class="space-y-6">
                                 <div>
                                     <label for="company_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company Name</label>
-                                    <input id="company_name" type="text" name="company_name" value="{{ old('company_name') }}" required
+                                    <input id="company_name" type="text" name="company_name" value="{{ old('company_name') }}" 
+                                        x-bind:required="userType === 'client'"
                                         class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white transition-colors @error('company_name') border-red-500 @enderror">
                                     
                                     @error('company_name')
@@ -192,7 +193,8 @@
 
                                 <div>
                                     <label for="industry" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Industry</label>
-                                    <select id="industry" name="industry" required
+                                    <select id="industry" name="industry" 
+                                        x-bind:required="userType === 'client'"
                                         class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white transition-colors @error('industry') border-red-500 @enderror">
                                         <option value="">Select Industry</option>
                                         <option value="Technology" {{ old('industry') == 'Technology' ? 'selected' : '' }}>Technology</option>
@@ -212,7 +214,8 @@
 
                                 <div>
                                     <label for="company_size" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company Size</label>
-                                    <select id="company_size" name="company_size" required
+                                    <select id="company_size" name="company_size" 
+                                        x-bind:required="userType === 'client'"
                                         class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white transition-colors @error('company_size') border-red-500 @enderror">
                                         <option value="">Select Company Size</option>
                                         <option value="1-10" {{ old('company_size') == '1-10' ? 'selected' : '' }}>1-10 employees</option>
@@ -250,6 +253,7 @@
                                 <div>
                                     <label for="profession" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Professional Title</label>
                                     <input id="profession" type="text" name="profession" value="{{ old('profession') }}" placeholder="e.g. Full Stack Developer"
+                                        x-bind:required="userType === 'job-seeker'"
                                         class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white transition-colors @error('profession') border-red-500 @enderror">
                                     
                                     @error('profession')
@@ -325,5 +329,5 @@
 @endsection
 
 @section('scripts')
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js" defer></script>
-@endsection 
+
+@endsection

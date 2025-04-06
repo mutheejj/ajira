@@ -18,14 +18,17 @@ class ClientMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Check if user is authenticated and has client role
         if (Auth::check() && Auth::user()->user_type === 'client') {
             return $next($request);
         }
 
+        // If request expects JSON response
         if ($request->expectsJson()) {
-            return response()->json(['message' => 'Unauthorized. This endpoint is for clients only.'], 403);
+            return response()->json(['error' => 'Unauthorized. Client access required.'], 403);
         }
 
-        return redirect()->route('home')->with('error', 'You do not have permission to access this page. This section is for clients only.');
+        // Redirect to home with error message
+        return redirect()->route('home')->with('error', 'You do not have client privileges to access this page.');
     }
 } 
