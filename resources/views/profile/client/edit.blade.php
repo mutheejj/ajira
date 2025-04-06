@@ -24,17 +24,29 @@
                 <div class="mb-6">
                     <div class="flex items-center">
                         <div class="relative">
-                            @if($user->profile_picture)
-                                <img src="{{ asset('storage/' . $user->profile_picture) }}" alt="{{ $user->name }}" class="w-24 h-24 rounded-full object-cover">
-                            @else
-                                <div class="w-24 h-24 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                                    <svg class="w-12 h-12 text-gray-400 dark:text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>
-                                </div>
-                            @endif
+                            <div id="profile-image-container" class="w-24 h-24 rounded-full overflow-hidden">
+                                @if($user->profile_picture)
+                                    <img id="profile-image-preview" src="{{ asset('storage/' . $user->profile_picture) }}" alt="{{ $user->name }}" class="w-full h-full object-cover">
+                                @else
+                                    <div id="profile-image-placeholder" class="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                        <svg class="w-12 h-12 text-gray-400 dark:text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>
+                                    </div>
+                                @endif
+                            </div>
+                            
                             <label for="profile_picture" class="absolute bottom-0 right-0 bg-white dark:bg-gray-800 rounded-full p-1 shadow-md cursor-pointer">
                                 <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                 <input type="file" id="profile_picture" name="profile_picture" class="hidden" accept="image/*">
                             </label>
+                            
+                            @if($user->profile_picture)
+                            <button type="button" id="remove_profile_picture" class="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                            @endif
+                            <input type="hidden" name="remove_profile_picture" id="remove_profile_picture_input" value="0">
                         </div>
                         <div class="ml-4">
                             <p class="text-sm text-gray-600 dark:text-gray-400">Upload a profile picture</p>
@@ -161,4 +173,119 @@
         </form>
     </div>
 </div>
-@endsection 
+@endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Profile picture preview functionality
+        const profilePictureInput = document.getElementById('profile_picture');
+        const profileImagePreview = document.getElementById('profile-image-preview');
+        const profileImagePlaceholder = document.getElementById('profile-image-placeholder');
+        const profileImageContainer = document.getElementById('profile-image-container');
+        const removeProfilePictureBtn = document.getElementById('remove_profile_picture');
+        const removeProfilePictureInput = document.getElementById('remove_profile_picture_input');
+        
+        // Preview uploaded image
+        if (profilePictureInput) {
+            profilePictureInput.addEventListener('change', function() {
+                const file = this.files[0];
+                
+                if (file) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        // Create or use existing preview image
+                        let imgElement = profileImagePreview;
+                        
+                        if (!imgElement) {
+                            imgElement = document.createElement('img');
+                            imgElement.id = 'profile-image-preview';
+                            imgElement.classList.add('w-full', 'h-full', 'object-cover');
+                            
+                            // Remove placeholder if it exists
+                            if (profileImagePlaceholder) {
+                                profileImagePlaceholder.remove();
+                            }
+                            
+                            // Add the image to the container
+                            profileImageContainer.appendChild(imgElement);
+                            
+                            // Add remove button if it doesn't exist
+                            if (!removeProfilePictureBtn) {
+                                const removeBtn = document.createElement('button');
+                                removeBtn.id = 'remove_profile_picture';
+                                removeBtn.type = 'button';
+                                removeBtn.className = 'absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors';
+                                removeBtn.innerHTML = `
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                `;
+                                
+                                const parentElement = profileImageContainer.parentElement;
+                                parentElement.appendChild(removeBtn);
+                                
+                                // Add event listener to the new button
+                                setupRemoveButton(removeBtn);
+                            }
+                        }
+                        
+                        // Set the preview image source
+                        imgElement.src = e.target.result;
+                        
+                        // Reset remove flag when a new image is selected
+                        if (removeProfilePictureInput) {
+                            removeProfilePictureInput.value = "0";
+                        }
+                    };
+                    
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+        
+        // Setup remove button functionality
+        function setupRemoveButton(button) {
+            button.addEventListener('click', function() {
+                // Set the hidden input value to indicate removal
+                if (removeProfilePictureInput) {
+                    removeProfilePictureInput.value = "1";
+                }
+                
+                // Clear the file input
+                if (profilePictureInput) {
+                    profilePictureInput.value = '';
+                }
+                
+                // Remove the preview image and show placeholder
+                if (profileImagePreview) {
+                    profileImagePreview.remove();
+                }
+                
+                // Create placeholder if it doesn't exist
+                if (!profileImagePlaceholder) {
+                    const placeholder = document.createElement('div');
+                    placeholder.id = 'profile-image-placeholder';
+                    placeholder.className = 'w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center';
+                    placeholder.innerHTML = `
+                        <svg class="w-12 h-12 text-gray-400 dark:text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                        </svg>
+                    `;
+                    
+                    profileImageContainer.appendChild(placeholder);
+                }
+                
+                // Hide the remove button
+                this.style.display = 'none';
+            });
+        }
+        
+        // Initialize remove button if it exists
+        if (removeProfilePictureBtn) {
+            setupRemoveButton(removeProfilePictureBtn);
+        }
+    });
+</script>
+@endpush 

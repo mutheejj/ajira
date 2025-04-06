@@ -2,12 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ProfileUpdateRequest;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
+use App\Models\JobApplication;
+use App\Models\JobPost;
 
 class ProfileController extends Controller
 {
@@ -46,6 +53,36 @@ class ProfileController extends Controller
     public function update(Request $request)
     {
         $user = Auth::user();
+        
+        // Validate the request
+        $request->validate([
+            'name' => ['string', 'max:255'],
+            'email' => ['email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'profile_picture' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+            'remove_profile_picture' => ['nullable', 'string'],
+        ]);
+        
+        // Handle profile picture
+        if ($request->hasFile('profile_picture')) {
+            // Delete old profile picture if exists
+            if ($user->profile_picture) {
+                Storage::disk('public')->delete($user->profile_picture);
+            }
+            
+            // Store new profile picture
+            // Important: store directly without nested directory to maintain consistent URL structure
+            $path = $request->file('profile_picture')->store('/', 'public');
+            $user->profile_picture = $path;
+        }
+        
+        // Handle profile picture removal
+        if ($request->input('remove_profile_picture') == '1') {
+            // Delete profile picture if exists
+            if ($user->profile_picture) {
+                Storage::disk('public')->delete($user->profile_picture);
+                $user->profile_picture = null;
+            }
+        }
         
         // Common validation rules
         $rules = [
@@ -101,16 +138,6 @@ class ProfileController extends Controller
             }
             
             $userData['password'] = Hash::make($request->new_password);
-        }
-        
-        // Handle profile picture upload
-        if ($request->hasFile('profile_picture')) {
-            if ($user->profile_picture) {
-                Storage::disk('public')->delete($user->profile_picture);
-            }
-            
-            $path = $request->file('profile_picture')->store('profile_pictures', 'public');
-            $userData['profile_picture'] = $path;
         }
         
         // Handle user type specific updates

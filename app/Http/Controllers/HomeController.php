@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\JobPost;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class HomeController extends Controller
 {
@@ -23,15 +24,81 @@ class HomeController extends Controller
      *
      * @return \Illuminate\View\View
      */
-    public function index()
+    public function index(Request $request)
     {
-        $featuredJobs = JobPost::with('client')
+        // Get all active job posts with pagination (more than just 6)
+        $jobsQuery = JobPost::with('client')
             ->where('status', 'active')
-            ->latest()
+            ->latest();
+            
+        // Apply category filter if provided
+        if ($request->has('category') && $request->category != 'all') {
+            $jobsQuery->where('category', $request->category);
+        }
+        
+        // Apply experience level filter if provided
+        if ($request->has('experience_level') && $request->experience_level != 'all') {
+            $jobsQuery->where('experience_level', $request->experience_level);
+        }
+        
+        // Apply job type filter if provided
+        if ($request->has('job_type') && $request->job_type != 'all') {
+            $jobsQuery->where('project_type', $request->job_type);
+        }
+        
+        // Apply budget filter if provided
+        if ($request->has('budget') && $request->budget != 'all') {
+            switch ($request->budget) {
+                case 'under-100':
+                    $jobsQuery->where('budget', '<', 100);
+                    break;
+                case '100-500':
+                    $jobsQuery->whereBetween('budget', [100, 500]);
+                    break;
+                case '500-1000':
+                    $jobsQuery->whereBetween('budget', [500, 1000]);
+                    break;
+                case '1000-5000':
+                    $jobsQuery->whereBetween('budget', [1000, 5000]);
+                    break;
+                case 'over-5000':
+                    $jobsQuery->where('budget', '>', 5000);
+                    break;
+            }
+        }
+        
+        // Get featured jobs (first page)
+        $featuredJobs = $jobsQuery->take(9)->get();
+        
+        // Get category counts for display in filters
+        $categoryStats = JobPost::where('status', 'active')
+            ->select('category', \DB::raw('count(*) as count'))
+            ->groupBy('category')
+            ->orderBy('count', 'desc')
+            ->get();
+            
+        // Pass sample counts for popular categories if empty
+        if ($categoryStats->isEmpty()) {
+            $categoryStats = collect([
+                ['category' => 'Web Development', 'count' => 1245],
+                ['category' => 'Design & Creative', 'count' => 876],
+                ['category' => 'Marketing', 'count' => 632],
+                ['category' => 'Content Writing', 'count' => 518],
+                ['category' => 'Finance & Accounting', 'count' => 423],
+                ['category' => 'Cloud Computing', 'count' => 386],
+                ['category' => 'Customer Service', 'count' => 352],
+                ['category' => 'Admin & Support', 'count' => 305],
+            ]);
+        }
+        
+        // Get unique clients who have posted jobs
+        $activeClients = User::whereHas('jobPosts', function($query) {
+                $query->where('status', 'active');
+            })
             ->take(6)
             ->get();
 
-        return view('home', compact('featuredJobs'));
+        return view('home', compact('featuredJobs', 'categoryStats', 'activeClients'));
     }
 
     /**

@@ -29,117 +29,112 @@
         </div>
     </section>
 
-    <!-- Category Filters Section (Upwork-style) -->
+    <!-- Category Filters Section -->
     <section class="py-8 bg-white dark:bg-gray-800">
         <div class="container mx-auto px-4">
             <div class="bg-gray-50 dark:bg-gray-700 rounded-xl shadow-md p-6">
                 <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Find Work in These Categories</h2>
                 
-                <!-- Filter Controls -->
-                <div class="mb-8">
+                <!-- Filter Form -->
+                <form action="{{ route('home') }}" method="GET" id="filter-form">
+                    <!-- Category filters as buttons -->
                     <div class="flex flex-wrap gap-3 mb-4">
-                        <button class="px-4 py-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors">All Categories</button>
-                        <button class="px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors">Development & IT</button>
-                        <button class="px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors">Design & Creative</button>
-                        <button class="px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors">Sales & Marketing</button>
-                        <button class="px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors">Writing & Translation</button>
-                        <button class="px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors">Admin & Support</button>
+                        <button type="button" data-category="all" onclick="setCategory('all')" class="filter-btn category-btn px-4 py-2 rounded-full {{ !request('category') || request('category') == 'all' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white' }} hover:bg-blue-700 transition-colors">All Categories</button>
+                        
+                        @foreach($categoryStats as $categoryStat)
+                        <button type="button" data-category="{{ strtolower(str_replace(' ', '-', $categoryStat['category'])) }}" onclick="setCategory('{{ strtolower(str_replace(' ', '-', $categoryStat['category'])) }}')" class="filter-btn category-btn px-4 py-2 rounded-full {{ request('category') == strtolower(str_replace(' ', '-', $categoryStat['category'])) ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white' }} hover:bg-blue-700 transition-colors">
+                            {{ $categoryStat['category'] }}
+                            <span class="ml-1 text-xs opacity-70">({{ $categoryStat['count'] }})</span>
+                        </button>
+                        @endforeach
                     </div>
+                    
+                    <!-- Hidden input for category -->
+                    <input type="hidden" name="category" id="category-input" value="{{ request('category', 'all') }}">
                     
                     <!-- Secondary filters -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label for="experience-level" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Experience Level</label>
-                            <select id="experience-level" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                                <option>Any Experience</option>
-                                <option>Entry Level</option>
-                                <option>Intermediate</option>
-                                <option>Expert</option>
+                            <select id="experience-level" name="experience_level" onchange="document.getElementById('filter-form').submit()" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                <option value="all" {{ !request('experience_level') || request('experience_level') == 'all' ? 'selected' : '' }}>Any Experience</option>
+                                <option value="entry" {{ request('experience_level') == 'entry' ? 'selected' : '' }}>Entry Level</option>
+                                <option value="intermediate" {{ request('experience_level') == 'intermediate' ? 'selected' : '' }}>Intermediate</option>
+                                <option value="expert" {{ request('experience_level') == 'expert' ? 'selected' : '' }}>Expert</option>
                             </select>
                         </div>
                         <div>
                             <label for="job-type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Type</label>
-                            <select id="job-type" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                                <option>All Job Types</option>
-                                <option>Hourly</option>
-                                <option>Fixed-Price</option>
-                                <option>Full-time</option>
+                            <select id="job-type" name="job_type" onchange="document.getElementById('filter-form').submit()" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                <option value="all" {{ !request('job_type') || request('job_type') == 'all' ? 'selected' : '' }}>All Job Types</option>
+                                <option value="full_time" {{ request('job_type') == 'full_time' ? 'selected' : '' }}>Full Time</option>
+                                <option value="part_time" {{ request('job_type') == 'part_time' ? 'selected' : '' }}>Part Time</option>
+                                <option value="contract" {{ request('job_type') == 'contract' ? 'selected' : '' }}>Contract</option>
+                                <option value="freelance" {{ request('job_type') == 'freelance' ? 'selected' : '' }}>Freelance</option>
                             </select>
                         </div>
                         <div>
                             <label for="budget" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Budget</label>
-                            <select id="budget" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                                <option>Any Budget</option>
-                                <option>Under $100</option>
-                                <option>$100 - $500</option>
-                                <option>$500 - $1,000</option>
-                                <option>$1,000 - $5,000</option>
-                                <option>$5,000+</option>
+                            <select id="budget" name="budget" onchange="document.getElementById('filter-form').submit()" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                <option value="all" {{ !request('budget') || request('budget') == 'all' ? 'selected' : '' }}>Any Budget</option>
+                                <option value="under-100" {{ request('budget') == 'under-100' ? 'selected' : '' }}>Under $100</option>
+                                <option value="100-500" {{ request('budget') == '100-500' ? 'selected' : '' }}>$100 - $500</option>
+                                <option value="500-1000" {{ request('budget') == '500-1000' ? 'selected' : '' }}>$500 - $1,000</option>
+                                <option value="1000-5000" {{ request('budget') == '1000-5000' ? 'selected' : '' }}>$1,000 - $5,000</option>
+                                <option value="over-5000" {{ request('budget') == 'over-5000' ? 'selected' : '' }}>$5,000+</option>
                             </select>
                         </div>
                     </div>
-                </div>
+                </form>
                 
                 <!-- Job Cards Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Job Card 1 -->
+                <div class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    @forelse ($featuredJobs as $job)
+                    <!-- Job Card -->
                     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
                         <div class="flex justify-between items-start mb-4">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Senior Web Developer</h3>
-                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">New</span>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $job->title }}</h3>
+                            @if($job->created_at->diffInDays() < 2)
+                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">New</span>
+                            @elseif($job->created_at->diffInDays() < 7)
+                                <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">Recent</span>
+                            @endif
                         </div>
-                        <p class="text-gray-700 dark:text-gray-300 text-sm mb-4">Looking for an experienced developer to build a responsive e-commerce website with React and Node.js.</p>
+                        <p class="text-gray-700 dark:text-gray-300 text-sm mb-4">
+                            {{ Str::limit($job->description, 100) }}
+                        </p>
                         <div class="flex flex-wrap gap-2 mb-4">
-                            <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">React</span>
-                            <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">Node.js</span>
-                            <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">E-commerce</span>
+                            @foreach(array_slice((array)json_decode($job->skills), 0, 3) as $skill)
+                                <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">{{ $skill }}</span>
+                            @endforeach
+                            
+                            @if(count((array)json_decode($job->skills)) > 3)
+                                <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">+{{ count((array)json_decode($job->skills)) - 3 }} more</span>
+                            @endif
                         </div>
                         <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-600 dark:text-gray-400">$30-50/hr</span>
-                            <span class="text-gray-600 dark:text-gray-400">Posted 2 days ago</span>
+                            <span class="text-gray-600 dark:text-gray-400">
+                                {{ $job->currency == 'USD' ? '$' : 'KSH ' }}{{ number_format($job->budget, 0) }}
+                                {{ $job->project_type == 'hourly' ? '/hr' : '' }}
+                            </span>
+                            <span class="text-gray-600 dark:text-gray-400">Posted {{ $job->created_at->diffForHumans() }}</span>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <a href="{{ route('jobs.show', $job->id) }}" class="text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium">
+                                View details <span aria-hidden="true">&rarr;</span>
+                            </a>
                         </div>
                     </div>
-                    
-                    <!-- Job Card 2 -->
-                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
-                        <div class="flex justify-between items-start mb-4">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">UI/UX Designer</h3>
-                            <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-purple-900 dark:text-purple-300">Featured</span>
-                        </div>
-                        <p class="text-gray-700 dark:text-gray-300 text-sm mb-4">Seeking a talented designer to create user interfaces for a mobile application. Experience with Figma required.</p>
-                        <div class="flex flex-wrap gap-2 mb-4">
-                            <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">UI/UX</span>
-                            <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">Figma</span>
-                            <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">Mobile App</span>
-                        </div>
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-600 dark:text-gray-400">$2,000-3,000</span>
-                            <span class="text-gray-600 dark:text-gray-400">Posted 3 days ago</span>
-                        </div>
+                    @empty
+                    <div class="col-span-3 p-6 text-center">
+                        <p class="text-gray-500 dark:text-gray-400">No jobs found matching your criteria. Try adjusting your filters.</p>
                     </div>
-                    
-                    <!-- Job Card 3 -->
-                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
-                        <div class="flex justify-between items-start mb-4">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Content Writer</h3>
-                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">Verified</span>
-                        </div>
-                        <p class="text-gray-700 dark:text-gray-300 text-sm mb-4">Looking for a skilled content writer to create blog posts, articles, and marketing copy for a SaaS company.</p>
-                        <div class="flex flex-wrap gap-2 mb-4">
-                            <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">Content Writing</span>
-                            <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">SEO</span>
-                            <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">Marketing</span>
-                        </div>
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-600 dark:text-gray-400">$25-35/hr</span>
-                            <span class="text-gray-600 dark:text-gray-400">Posted 1 day ago</span>
-                        </div>
-                    </div>
+                    @endforelse
                 </div>
                 
                 <!-- View More Button -->
                 <div class="mt-8 text-center">
-                    <a href="{{ route('jobs.index') }}" class="inline-block px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    <a href="{{ route('jobs.index') }}" class="inline-block px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
                         View All Jobs
                     </a>
                 </div>
@@ -153,143 +148,83 @@
             <h2 class="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">Popular Job Categories</h2>
             
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                <!-- Category 1 -->
+                @foreach($categoryStats as $index => $categoryStat)
+                @if($index < 8)
+                <!-- Category {{ $index + 1 }} -->
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center hover:shadow-lg transition-shadow">
-                    <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600 dark:text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-{{ ['blue', 'green', 'purple', 'yellow', 'red', 'indigo', 'pink', 'gray'][$index % 8] }}-100 dark:bg-{{ ['blue', 'green', 'purple', 'yellow', 'red', 'indigo', 'pink', 'gray'][$index % 8] }}-900 rounded-full mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-{{ ['blue', 'green', 'purple', 'yellow', 'red', 'indigo', 'pink', 'gray'][$index % 8] }}-600 dark:text-{{ ['blue', 'green', 'purple', 'yellow', 'red', 'indigo', 'pink', 'gray'][$index % 8] }}-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ ['M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4', 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z', 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z', 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', 'M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4'][$index % 8] }}" />
                         </svg>
                     </div>
-                    <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Web Development</h3>
-                    <p class="text-gray-600 dark:text-gray-400 text-sm">1,245 Jobs Available</p>
+                    <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">{{ $categoryStat['category'] }}</h3>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm">{{ $categoryStat['count'] }} Jobs Available</p>
+                    <a href="{{ route('jobs.index', ['category' => $categoryStat['category']]) }}" class="mt-4 inline-block text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                        Explore Jobs →
+                    </a>
                 </div>
-                
-                <!-- Category 2 -->
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center hover:shadow-lg transition-shadow">
-                    <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600 dark:text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Design & Creative</h3>
-                    <p class="text-gray-600 dark:text-gray-400 text-sm">876 Jobs Available</p>
-                </div>
-                
-                <!-- Category 3 -->
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center hover:shadow-lg transition-shadow">
-                    <div class="inline-flex items-center justify-center w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600 dark:text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Marketing</h3>
-                    <p class="text-gray-600 dark:text-gray-400 text-sm">632 Jobs Available</p>
-                </div>
-                
-                <!-- Category 4 -->
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center hover:shadow-lg transition-shadow">
-                    <div class="inline-flex items-center justify-center w-16 h-16 bg-yellow-100 dark:bg-yellow-900 rounded-full mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-600 dark:text-yellow-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Content Writing</h3>
-                    <p class="text-gray-600 dark:text-gray-400 text-sm">518 Jobs Available</p>
-                </div>
-                
-                <!-- Category 5 -->
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center hover:shadow-lg transition-shadow">
-                    <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-600 dark:text-red-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Finance & Accounting</h3>
-                    <p class="text-gray-600 dark:text-gray-400 text-sm">423 Jobs Available</p>
-                </div>
-                
-                <!-- Category 6 -->
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center hover:shadow-lg transition-shadow">
-                    <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 dark:bg-indigo-900 rounded-full mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-indigo-600 dark:text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Cloud Computing</h3>
-                    <p class="text-gray-600 dark:text-gray-400 text-sm">386 Jobs Available</p>
-                </div>
-                
-                <!-- Category 7 -->
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center hover:shadow-lg transition-shadow">
-                    <div class="inline-flex items-center justify-center w-16 h-16 bg-pink-100 dark:bg-pink-900 rounded-full mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-pink-600 dark:text-pink-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Customer Service</h3>
-                    <p class="text-gray-600 dark:text-gray-400 text-sm">352 Jobs Available</p>
-                </div>
-                
-                <!-- Category 8 -->
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center hover:shadow-lg transition-shadow">
-                    <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Admin & Support</h3>
-                    <p class="text-gray-600 dark:text-gray-400 text-sm">305 Jobs Available</p>
-                </div>
+                @endif
+                @endforeach
             </div>
         </div>
     </section>
-    
-    <!-- Testimonials -->
+
+    <!-- Featured Clients Section -->
     <section class="py-16 bg-white dark:bg-gray-800">
         <div class="container mx-auto px-4">
-            <h2 class="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">Success Stories</h2>
+            <h2 class="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">Top Employers</h2>
             
-            <div class="grid md:grid-cols-2 gap-8">
-                <!-- Testimonial 1 -->
-                <div class="bg-gray-50 dark:bg-gray-700 p-8 rounded-lg shadow-md">
-                    <div class="flex items-center mb-6">
-                        <div class="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-full mr-4"></div>
-                        <div>
-                            <h4 class="font-semibold text-gray-900 dark:text-white">Sarah Johnson</h4>
-                            <p class="text-gray-600 dark:text-gray-300 text-sm">Web Developer</p>
-                        </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                @foreach($activeClients as $client)
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center hover:shadow-lg transition-shadow">
+                    <div class="mb-4 mx-auto w-16 h-16 relative">
+                        @if($client->profile_picture)
+                            <img src="{{ asset('storage/' . $client->profile_picture) }}" alt="{{ $client->name }}" class="rounded-full w-full h-full object-cover border-2 border-blue-500">
+                        @else
+                            <div class="w-full h-full rounded-full bg-blue-500 flex items-center justify-center text-white text-xl font-bold">
+                                {{ substr($client->name, 0, 1) }}
+                            </div>
+                        @endif
                     </div>
-                    <p class="text-gray-600 dark:text-gray-300">"Ajira Global helped me find consistent remote work with clients from around the world. The platform is easy to use and the payment system is reliable."</p>
+                    <h3 class="text-md font-semibold mb-1 text-gray-900 dark:text-white">{{ $client->name }}</h3>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm mb-2">
+                        {{ $client->company_name ?? 'Employer' }}
+                    </p>
+                    <a href="{{ route('jobs.index', ['client' => $client->id]) }}" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">
+                        View Jobs
+                    </a>
                 </div>
-                
-                <!-- Testimonial 2 -->
-                <div class="bg-gray-50 dark:bg-gray-700 p-8 rounded-lg shadow-md">
-                    <div class="flex items-center mb-6">
-                        <div class="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-full mr-4"></div>
-                        <div>
-                            <h4 class="font-semibold text-gray-900 dark:text-white">Michael Chen</h4>
-                            <p class="text-gray-600 dark:text-gray-300 text-sm">Startup Founder</p>
-                        </div>
-                    </div>
-                    <p class="text-gray-600 dark:text-gray-300">"As a startup founder, I needed to find talented professionals quickly. Ajira Global made it easy to connect with skilled freelancers who delivered quality work on time."</p>
-                </div>
+                @endforeach
             </div>
         </div>
     </section>
-    
-    <!-- CTA Section -->
-    <section class="py-16 bg-blue-600 text-white">
-        <div class="container mx-auto px-4 text-center">
-            <h2 class="text-3xl font-bold mb-6">Ready to Get Started?</h2>
-            <p class="text-xl max-w-2xl mx-auto mb-8">Join thousands of professionals on Ajira Global and start your journey today.</p>
-            <div class="flex flex-wrap justify-center gap-4">
-                <a href="{{ route('register') }}" class="px-6 py-3 rounded-lg bg-white text-blue-600 font-semibold hover:bg-gray-100 transition-colors">
-                    Create an Account
-                </a>
-                <a href="{{ route('learn-more') }}" class="px-6 py-3 rounded-lg border border-white text-white font-semibold hover:bg-white hover:text-blue-600 transition-colors">
-                    Learn More
-                </a>
-            </div>
-        </div>
-    </section>
+
+    <script>
+        // Function to set category and submit the form
+        function setCategory(category) {
+            // Update hidden input
+            document.getElementById('category-input').value = category;
+            
+            // Reset all category buttons
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('bg-gray-200', 'dark:bg-gray-600', 'text-gray-800', 'dark:text-white');
+            });
+            
+            // Highlight the selected category button
+            const selectedBtn = document.querySelector(`.category-btn[data-category="${category}"]`);
+            if (selectedBtn) {
+                selectedBtn.classList.remove('bg-gray-200', 'dark:bg-gray-600', 'text-gray-800', 'dark:text-white');
+                selectedBtn.classList.add('bg-blue-600', 'text-white');
+            }
+            
+            // Submit the form
+            document.getElementById('filter-form').submit();
+        }
+
+        // Initialize tooltips or other enhancements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add any additional JavaScript functionality here
+        });
+    </script>
 @endsection

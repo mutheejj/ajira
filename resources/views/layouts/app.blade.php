@@ -1,10 +1,37 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" class="no-js">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>@yield('title', 'Ajira Global')</title>
+    
+    <!-- Immediately apply the theme before page renders to prevent flashing -->
+    <script>
+        // Get theme from localStorage or use system preference
+        const savedTheme = localStorage.getItem('theme');
+        let currentTheme;
+        
+        if (savedTheme) {
+            currentTheme = savedTheme;
+        } else {
+            // Check system preference
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            currentTheme = prefersDark ? 'dark' : 'light';
+            localStorage.setItem('theme', currentTheme);
+        }
+        
+        // Apply theme immediately before content renders
+        if (currentTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        
+        // Set an attribute for additional styling
+        document.documentElement.setAttribute('data-theme', currentTheme);
+    </script>
+    
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -24,6 +51,18 @@
         /* Disable transitions for specific elements that might cause flicker */
         .no-transition {
             transition: none !important;
+        }
+        
+        /* Theme toggle button styles */
+        .theme-toggle-button {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .theme-toggle-button.processing {
+            opacity: 0.6 !important;
+            pointer-events: none !important;
+            cursor: not-allowed !important;
         }
         
         /* Select2 styles */
@@ -61,12 +100,17 @@
             top: 0; /* Will be set dynamically via JS */
             height: calc(100vh - var(--header-height, 0px));
             width: 280px;
-            background-color: #111827;
-            color: white;
+            background-color: #ffffff;
+            color: #000000;
             z-index: 50;
             transform: translateX(-100%);
-            transition: transform 0.3s ease-in-out;
+            transition: transform 0.3s ease-in-out, background-color 0.3s ease, color 0.3s ease;
             overflow-y: auto;
+        }
+        
+        .dark .user-sidebar {
+            background-color: #111827;
+            color: #ffffff;
         }
         
         .user-sidebar.show {
@@ -95,18 +139,34 @@
             display: flex;
             align-items: center;
             padding: 0.75rem 1.5rem;
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(0, 0, 0, 0.7);
             transition: all 0.2s;
             border-left: 3px solid transparent;
         }
         
+        .dark .user-menu-item {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
         .user-menu-item:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            color: rgba(0, 0, 0, 0.9);
+            border-left-color: #3b82f6;
+        }
+        
+        .dark .user-menu-item:hover {
             background-color: rgba(255, 255, 255, 0.1);
             color: white;
             border-left-color: #3b82f6;
         }
         
         .user-menu-item.active {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: rgba(0, 0, 0, 0.9);
+            border-left-color: #3b82f6;
+        }
+        
+        .dark .user-menu-item.active {
             background-color: rgba(59, 130, 246, 0.2);
             color: white;
             border-left-color: #3b82f6;
@@ -124,12 +184,21 @@
             align-items: center;
             justify-content: space-between;
             padding: 0.75rem 1.5rem;
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(0, 0, 0, 0.7);
             border-left: 1px solid transparent;
             cursor: pointer;
         }
         
+        .dark .theme-toggle-btn {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
         .theme-toggle-btn:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            color: rgba(0, 0, 0, 0.9);
+        }
+        
+        .dark .theme-toggle-btn:hover {
             background-color: rgba(255, 255, 255, 0.1);
             color: white;
         }
@@ -137,8 +206,8 @@
         .theme-toggle-switch {
             position: relative;
             display: inline-block;
-            width: 28px;
-            height: 28px;
+            width: 40px;
+            height: 20px;
         }
         
         .theme-toggle-switch input {
@@ -154,19 +223,23 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: #374151;
+            background-color: #f3f4f6;
             transition: .4s;
             border-radius: 34px;
+        }
+        
+        .dark .theme-toggle-slider {
+            background-color: #374151;
         }
         
         .theme-toggle-slider:before {
             position: absolute;
             content: "";
-            height: 20px;
-            width: 20px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: #3b82f6;
             transition: .4s;
             border-radius: 50%;
         }
@@ -176,13 +249,18 @@
         }
         
         input:checked + .theme-toggle-slider:before {
-            transform: translateX(24px);
+            transform: translateX(20px);
+            background-color: white;
         }
         
         .online-status {
             display: flex;
             align-items: center;
             margin-top: 8px;
+            color: rgba(0, 0, 0, 0.7);
+        }
+        
+        .dark .online-status {
             color: rgba(255, 255, 255, 0.7);
         }
         
@@ -205,18 +283,18 @@
     @auth
     <div class="sidebar-overlay" :class="{ 'show': sidebarOpen }" @click="sidebarOpen = false"></div>
     <div class="user-sidebar" :class="{ 'show': sidebarOpen }">
-        <div class="p-6 border-b border-gray-700">
+        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
             <div class="flex items-center space-x-3">
                 @if(auth()->user()->profile_picture)
-                    <img src="{{ auth()->user()->profile_picture }}" alt="{{ auth()->user()->name }}" class="h-12 w-12 rounded-full object-cover border-2 border-blue-500">
+                    <img src="{{ asset('storage/' . auth()->user()->profile_picture) }}" alt="{{ auth()->user()->name }}" class="h-12 w-12 rounded-full object-cover border-2 border-blue-500">
                 @else
                     <div class="h-12 w-12 rounded-full bg-blue-500 flex items-center justify-center text-white text-xl font-bold">
                         {{ substr(auth()->user()->name, 0, 1) }}
                     </div>
                 @endif
                 <div>
-                    <h3 class="text-lg font-bold text-white">{{ auth()->user()->name }}</h3>
-                    <p class="text-sm text-gray-400">{{ auth()->user()->email }}</p>
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ auth()->user()->name }}</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">{{ auth()->user()->email }}</p>
                     
                     <div class="online-status">
                         <span class="status-indicator online"></span>
@@ -327,10 +405,11 @@
     @endauth
     
     <script>
-        // Theme management
+        // Enhanced theme management with persistent state
         document.addEventListener('DOMContentLoaded', function() {
-            // Prevent transition flicker on page load
-            document.body.classList.add('no-transition');
+            // Initialize variables
+            const htmlElement = document.documentElement;
+            const body = document.getElementById('app-body');
             
             // Set sidebar position below header
             const headerElement = document.querySelector('header');
@@ -349,23 +428,8 @@
                 });
             }
             
-            const htmlElement = document.documentElement;
-            
-            // Check for saved theme preference or use system preference
-            const savedTheme = localStorage.getItem('theme');
-            let currentTheme;
-            
-            if (savedTheme) {
-                currentTheme = savedTheme;
-            } else {
-                // Check system preference
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                currentTheme = prefersDark ? 'dark' : 'light';
-                localStorage.setItem('theme', currentTheme);
-            }
-            
-            // Apply theme
-            applyTheme(currentTheme);
+            // Get current theme (now just for UI updates, theme already applied)
+            const currentTheme = htmlElement.getAttribute('data-theme');
             
             // Update sidebar theme toggle checkbox
             const sidebarThemeToggle = document.getElementById('sidebar-theme-toggle');
@@ -378,40 +442,22 @@
                 });
             }
             
-            // Listen for system theme changes
-            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-            mediaQuery.addEventListener('change', (e) => {
-                if (localStorage.getItem('theme') === 'system') {
-                    const systemTheme = e.matches ? 'dark' : 'light';
-                    applyTheme(systemTheme);
-                }
-            });
-            
-            // Re-enable transitions after page load
-            setTimeout(() => {
-                document.body.classList.remove('no-transition');
-            }, 100);
-            
-            // Theme toggle functionality (main handler - the header buttons use this indirectly)
+            // Function to apply theme (used when toggling)
             function applyTheme(theme) {
                 // Set theme attribute
                 htmlElement.setAttribute('data-theme', theme);
                 
-                // Update body classes
-                const body = document.getElementById('app-body');
+                // Persist to localStorage
+                localStorage.setItem('theme', theme);
                 
                 if (theme === 'dark') {
+                    htmlElement.classList.add('dark');
                     body.classList.add('dark:bg-gray-900', 'dark:text-white');
                     body.classList.remove('bg-gray-100', 'text-gray-900');
-                    
-                    // Add dark class to html for Tailwind dark mode
-                    htmlElement.classList.add('dark');
                 } else {
+                    htmlElement.classList.remove('dark');
                     body.classList.remove('dark:bg-gray-900', 'dark:text-white');
                     body.classList.add('bg-gray-100', 'text-gray-900');
-                    
-                    // Remove dark class from html for Tailwind dark mode
-                    htmlElement.classList.remove('dark');
                 }
                 
                 // Update sidebar theme toggle button text
@@ -455,13 +501,49 @@
             const themeToggleBtn = document.getElementById('theme-toggle');
             const themeToggleMobileBtn = document.getElementById('theme-toggle-mobile');
             
+            // Use a timestamp to prevent multiple rapid clicks
+            let lastThemeToggleTime = 0;
+            const TOGGLE_COOLDOWN = 500; // Longer cooldown period in milliseconds
+            
+            function handleThemeToggle(e) {
+                const now = Date.now();
+                // Only process clicks if enough time has elapsed since last toggle
+                if (now - lastThemeToggleTime > TOGGLE_COOLDOWN) {
+                    lastThemeToggleTime = now;
+                    
+                    // Add a temporary "processing" class to visually indicate the button is disabled
+                    if (e.currentTarget) {
+                        e.currentTarget.classList.add('processing');
+                        setTimeout(() => {
+                            e.currentTarget.classList.remove('processing');
+                        }, TOGGLE_COOLDOWN);
+                    }
+                    
+                    // Toggle the theme
+                    window.toggleTheme();
+                }
+                
+                // Stop event propagation to prevent any other handlers from firing
+                e.stopPropagation();
+                return false;
+            }
+            
             if (themeToggleBtn) {
-                themeToggleBtn.addEventListener('click', () => window.toggleTheme());
+                themeToggleBtn.addEventListener('click', handleThemeToggle);
             }
             
             if (themeToggleMobileBtn) {
-                themeToggleMobileBtn.addEventListener('click', () => window.toggleTheme());
+                themeToggleMobileBtn.addEventListener('click', handleThemeToggle);
             }
+            
+            // Listen for system theme changes
+            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            mediaQuery.addEventListener('change', (e) => {
+                if (localStorage.getItem('theme') === 'system') {
+                    const systemTheme = e.matches ? 'dark' : 'light';
+                    applyTheme(systemTheme);
+                }
+            });
         });
     </script>
     @yield('scripts')

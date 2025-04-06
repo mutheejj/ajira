@@ -21,29 +21,42 @@
                 <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Personal Information</h2>
                 
                 <!-- Profile Picture -->
-                <div class="mb-6">
-                    <div class="flex items-center">
+                <div class="p-4 bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Profile Picture</h2>
+                    </div>
+                    
+                    <div class="flex items-center space-x-8">
                         <div class="relative">
-                            @if($user->profile_picture)
-                                <img src="{{ asset('storage/' . $user->profile_picture) }}" alt="{{ $user->name }}" class="w-24 h-24 rounded-full object-cover">
-                            @else
-                                <div class="w-24 h-24 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                                    <svg class="w-12 h-12 text-gray-400 dark:text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>
-                                </div>
+                            <div id="profile-image-container" class="w-32 h-32 rounded-full overflow-hidden border-2 border-gray-200 dark:border-gray-700">
+                                @if(Auth::user()->profile_picture)
+                                    <img id="profile-image-preview" src="{{ asset('storage/' . Auth::user()->profile_picture) }}" class="w-full h-full object-cover" alt="Profile Picture">
+                                @else
+                                    <div id="profile-image-placeholder" class="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                        <svg class="w-12 h-12 text-gray-400 dark:text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </div>
+                                @endif
+                            </div>
+                            @if(Auth::user()->profile_picture)
+                                <button id="remove_profile_picture" type="button" class="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
                             @endif
-                            <label for="profile_picture" class="absolute bottom-0 right-0 bg-white dark:bg-gray-800 rounded-full p-1 shadow-md cursor-pointer">
-                                <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                <input type="file" id="profile_picture" name="profile_picture" class="hidden" accept="image/*">
-                            </label>
                         </div>
-                        <div class="ml-4">
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Upload a profile picture</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">JPG, PNG or GIF (Max. 5MB)</p>
+                        
+                        <div>
+                            <label for="profile_picture" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white tracking-widest hover:bg-blue-700 active:bg-blue-800 focus:outline-none focus:border-blue-800 focus:ring focus:ring-blue-200 transition cursor-pointer">
+                                Select Image
+                            </label>
+                            <input id="profile_picture" name="profile_picture" type="file" accept="image/*" class="hidden">
+                            <input id="remove_profile_picture_input" type="hidden" name="remove_profile_picture" value="0">
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">JPG, PNG or GIF (Max. 2MB)</p>
                         </div>
                     </div>
-                    @error('profile_picture')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
                 </div>
                 
                 <!-- Name and Email -->
