@@ -128,9 +128,13 @@ class RegisterController extends Controller
 
         event(new Registered($user = $this->create($request->all())));
 
-        // User registered but not logged in yet - must verify email first
+        // Don't auto-login the user - must verify email first
+        // Instead, redirect to the verification page
+        \Log::info('User registered successfully: ' . $user->email);
+        
         return redirect()->route('verification.notice')
-            ->with('success', 'Registration successful! Please check your email for verification code.');
+            ->with('success', 'Registration successful! Please check your email for verification code.')
+            ->with('email', $user->email); // Pass email to the verification page
     }
 
     /**
@@ -142,15 +146,23 @@ class RegisterController extends Controller
      */
     protected function sendVerificationEmail(User $user, $code)
     {
-        $data = [
-            'user' => $user,
-            'code' => $code
-        ];
-        
-        Mail::send('emails.verification', $data, function($message) use ($user) {
-            $message->to($user->email, $user->name)
-                    ->subject('Verify Your Email Address');
-        });
+        try {
+            $data = [
+                'user' => $user,
+                'code' => $code
+            ];
+            
+            Mail::send('emails.verification', $data, function($message) use ($user) {
+                $message->to($user->email, $user->name)
+                        ->subject('Verify Your Email Address');
+            });
+            
+            // Log successful email send
+            \Log::info('Verification email sent to: ' . $user->email);
+        } catch (\Exception $e) {
+            // Log any errors that occur
+            \Log::error('Failed to send verification email: ' . $e->getMessage());
+        }
     }
     
     /**
@@ -214,11 +226,20 @@ class RegisterController extends Controller
      */
     public function resendVerification(Request $request)
     {
+        // Get email from request or query string
+        $email = $request->input('email') ?? $request->query('email');
+        
+        if (!$email) {
+            return back()->withErrors(['email' => 'Email address is required.']);
+        }
+        
         $request->validate([
             'email' => 'required|email|exists:users,email',
+        ], [
+            'email.exists' => 'This email address is not registered in our system.'
         ]);
         
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $email)->first();
         
         if (!$user) {
             return back()->withErrors(['email' => 'User not found.']);
@@ -245,6 +266,8 @@ class RegisterController extends Controller
         // Send new verification code
         $this->sendVerificationEmail($user, $verification->code);
         
-        return back()->with('success', 'A new verification code has been sent to your email.');
+        return redirect()->route('verification.notice')
+            ->with('success', 'A new verification code has been sent to your email.')
+            ->with('email', $email);
     }
 } 

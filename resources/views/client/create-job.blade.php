@@ -2,6 +2,36 @@
 
 @section('title', 'Post a New Job | Ajira Global')
 
+@section('styles')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    /* Custom styling for Select2 */
+    .select2-container--default .select2-selection--multiple {
+        border-color: rgb(209, 213, 219);
+        border-radius: 0.375rem;
+    }
+    .dark .select2-container--default .select2-selection--multiple {
+        background-color: rgb(55, 65, 81);
+        border-color: rgb(75, 85, 99);
+    }
+    .dark .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        background-color: rgb(75, 85, 99);
+        color: white;
+        border-color: rgb(107, 114, 128);
+    }
+    .dark .select2-dropdown {
+        background-color: rgb(55, 65, 81);
+        color: white;
+    }
+    .dark .select2-container--default .select2-results__option[aria-selected=true] {
+        background-color: rgb(75, 85, 99);
+    }
+    .dark .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background-color: rgb(79, 70, 229);
+    }
+</style>
+@endsection
+
 @section('content')
 <div class="container mx-auto px-4 py-8">
     <!-- Page Header -->
@@ -51,9 +81,23 @@
                     <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Category*</label>
                     <select id="category" name="category" required class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                         <option value="">Select a category</option>
-                        @foreach($categories as $category)
-                        <option value="{{ $category->name }}" {{ old('category') == $category->name ? 'selected' : '' }}>{{ $category->name }}</option>
-                        @endforeach
+                        @if(isset($categories) && count($categories) > 0)
+                            @foreach($categories as $category)
+                                <option value="{{ $category->name }}" {{ old('category') == $category->name ? 'selected' : '' }}>{{ $category->name }}</option>
+                            @endforeach
+                        @else
+                            <option value="Web Development">Web Development</option>
+                            <option value="Mobile Development">Mobile Development</option>
+                            <option value="UI/UX Design">UI/UX Design</option>
+                            <option value="Graphic Design">Graphic Design</option>
+                            <option value="Content Writing">Content Writing</option>
+                            <option value="Digital Marketing">Digital Marketing</option>
+                            <option value="SEO">SEO</option>
+                            <option value="Data Science">Data Science</option>
+                            <option value="Project Management">Project Management</option>
+                            <option value="Virtual Assistance">Virtual Assistance</option>
+                            <option value="Video Production">Video Production</option>
+                        @endif
                     </select>
                     @error('category')
                     <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -75,15 +119,58 @@
                 <!-- Skills -->
                 <div class="col-span-2">
                     <label for="skills" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Required Skills*</label>
-                    <select id="skills" name="skills[]" multiple required class="select2 w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                        @foreach($skills as $skill)
-                        <option value="{{ $skill->name }}" {{ in_array($skill->name, old('skills', [])) ? 'selected' : '' }}>{{ $skill->name }}</option>
-                        @endforeach
+                    <select id="skills" name="skills[]" multiple required class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                        @if(isset($skills) && count($skills) > 0)
+                            @foreach($skills as $skill)
+                                <option value="{{ $skill->name }}" {{ in_array($skill->name, old('skills', [])) ? 'selected' : '' }}>{{ $skill->name }}</option>
+                            @endforeach
+                        @else
+                            <option value="HTML">HTML</option>
+                            <option value="CSS">CSS</option>
+                            <option value="JavaScript">JavaScript</option>
+                            <option value="React">React</option>
+                            <option value="Vue.js">Vue.js</option>
+                            <option value="Angular">Angular</option>
+                            <option value="Node.js">Node.js</option>
+                            <option value="Python">Python</option>
+                            <option value="Django">Django</option>
+                            <option value="PHP">PHP</option>
+                            <option value="Laravel">Laravel</option>
+                            <option value="WordPress">WordPress</option>
+                            <option value="Shopify">Shopify</option>
+                            <option value="Swift">Swift</option>
+                            <option value="Kotlin">Kotlin</option>
+                            <option value="iOS">iOS</option>
+                            <option value="Android">Android</option>
+                            <option value="Flutter">Flutter</option>
+                            <option value="React Native">React Native</option>
+                            <option value="UI Design">UI Design</option>
+                            <option value="UX Design">UX Design</option>
+                            <option value="Figma">Figma</option>
+                            <option value="Adobe XD">Adobe XD</option>
+                            <option value="Photoshop">Photoshop</option>
+                            <option value="Copywriting">Copywriting</option>
+                            <option value="Content Writing">Content Writing</option>
+                            <option value="SEO Writing">SEO Writing</option>
+                            <option value="Technical Writing">Technical Writing</option>
+                            <option value="Blogging">Blogging</option>
+                            <option value="Social Media Marketing">Social Media Marketing</option>
+                            <option value="Email Marketing">Email Marketing</option>
+                            <option value="PPC">PPC</option>
+                            <option value="Google Ads">Google Ads</option>
+                            <option value="Facebook Ads">Facebook Ads</option>
+                            <option value="Data Analysis">Data Analysis</option>
+                            <option value="Machine Learning">Machine Learning</option>
+                            <option value="SQL">SQL</option>
+                            <option value="Project Management">Project Management</option>
+                            <option value="Scrum">Scrum</option>
+                            <option value="Agile">Agile</option>
+                        @endif
                     </select>
                     @error('skills')
                     <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
-                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Select up to 10 most relevant skills for this job. Press Enter to select multiple.</p>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Select the most relevant skills for this job. You can select multiple options.</p>
                 </div>
                 
                 <hr class="col-span-2 border-gray-200 dark:border-gray-700">
@@ -129,23 +216,6 @@
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
-                </div>
-                
-                <!-- Duration -->
-                <div class="col-span-2 md:col-span-1">
-                    <label for="duration" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Estimated Duration</label>
-                    <select id="duration" name="duration" class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                        <option value="">Select duration</option>
-                        <option value="less_than_1_week" {{ old('duration') == 'less_than_1_week' ? 'selected' : '' }}>Less than 1 week</option>
-                        <option value="1_to_2_weeks" {{ old('duration') == '1_to_2_weeks' ? 'selected' : '' }}>1 to 2 weeks</option>
-                        <option value="2_to_4_weeks" {{ old('duration') == '2_to_4_weeks' ? 'selected' : '' }}>2 to 4 weeks</option>
-                        <option value="1_to_3_months" {{ old('duration') == '1_to_3_months' ? 'selected' : '' }}>1 to 3 months</option>
-                        <option value="3_to_6_months" {{ old('duration') == '3_to_6_months' ? 'selected' : '' }}>3 to 6 months</option>
-                        <option value="more_than_6_months" {{ old('duration') == 'more_than_6_months' ? 'selected' : '' }}>More than 6 months</option>
-                    </select>
-                    @error('duration')
-                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
                 </div>
                 
                 <!-- Experience Level -->
@@ -243,39 +313,57 @@
         </form>
     </div>
 </div>
+@endsection
 
+@section('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Select2 for skills multi-select
+        try {
+            $('#skills').select2({
+                placeholder: 'Select skills required for this job',
+                allowClear: true,
+                tags: true,
+                width: '100%',
+                dropdownParent: $('body')
+            });
+        } catch (error) {
+            console.error('Error initializing Select2:', error);
+        }
+        
         // Toggle location field based on location type
         const locationTypeSelect = document.getElementById('location_type');
         const locationField = document.querySelector('.location-field');
         
-        locationTypeSelect.addEventListener('change', function() {
-            if (this.value === 'remote') {
+        if (locationTypeSelect && locationField) {
+            // Initial state
+            if (locationTypeSelect.value === 'remote') {
                 locationField.style.display = 'none';
             } else {
                 locationField.style.display = 'block';
             }
-        });
+            
+            // On change
+            locationTypeSelect.addEventListener('change', function() {
+                if (this.value === 'remote') {
+                    locationField.style.display = 'none';
+                } else {
+                    locationField.style.display = 'block';
+                }
+            });
+        }
         
         // Display file name when selected
         const attachmentInput = document.getElementById('attachment');
         const attachmentName = document.getElementById('attachment-name');
         
-        attachmentInput.addEventListener('change', function() {
-            if (this.files && this.files[0]) {
-                attachmentName.textContent = 'Selected file: ' + this.files[0].name;
-            } else {
-                attachmentName.textContent = '';
-            }
-        });
-        
-        // Initialize Select2 for skills multi-select if available
-        if (typeof($.fn.select2) !== 'undefined') {
-            $('.select2').select2({
-                theme: 'classic',
-                placeholder: 'Select skills required for this job',
-                maximumSelectionLength: 10
+        if (attachmentInput && attachmentName) {
+            attachmentInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    attachmentName.textContent = 'Selected file: ' + this.files[0].name;
+                } else {
+                    attachmentName.textContent = '';
+                }
             });
         }
     });

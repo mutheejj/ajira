@@ -150,11 +150,29 @@ class ClientController extends Controller
      */
     public function createJob()
     {
-        // Get categories and skills for select dropdowns
-        $categories = \App\Models\Category::orderBy('name')->get();
-        $skills = \App\Models\Skill::orderBy('name')->get();
-        
-        return view('client.create-job', compact('categories', 'skills'));
+        try {
+            // Get categories and skills for select dropdowns
+            $categories = [];
+            $skills = [];
+            
+            // Check if Category model exists
+            if (class_exists('\App\Models\Category')) {
+                $categories = \App\Models\Category::orderBy('name')->get();
+            }
+            
+            // Check if Skill model exists
+            if (class_exists('\App\Models\Skill')) {
+                $skills = \App\Models\Skill::orderBy('name')->get();
+            }
+            
+            \Log::info('Loading create job form with categories count: ' . count($categories) . ', skills count: ' . count($skills));
+            
+            return view('client.create-job', compact('categories', 'skills'));
+        } catch (\Exception $e) {
+            \Log::error('Error loading create job form: ' . $e->getMessage());
+            // Return the view without the models if there's an error
+            return view('client.create-job');
+        }
     }
     
     /**
@@ -165,53 +183,92 @@ class ClientController extends Controller
      */
     public function storeJob(Request $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:100',
-            'category' => 'required|string',
-            'description' => 'required|string|min:50',
-            'skills' => 'required|array|min:1',
-            'skills.*' => 'string',
-            'budget' => 'required|numeric|min:5',
-            'currency' => 'required|string|in:USD,KES,EUR,GBP',
-            'rate_type' => 'required|string|in:fixed,hourly',
-            'job_type' => 'required|string|in:one-time,ongoing',
-            'experience_level' => 'required|string|in:entry,intermediate,expert',
-            'location_type' => 'required|string|in:remote,on-site,hybrid',
-            'location' => 'nullable|string|max:100',
-            'attachment' => 'nullable|file|max:5120',
-            'status' => 'nullable|string|in:draft,active',
-        ]);
+        \Log::info('Job post data received', ['data' => $request->except('attachment')]);
         
-        $client = Auth::user();
-        
-        $jobPost = new JobPost();
-        $jobPost->client_id = $client->id;
-        $jobPost->title = $request->title;
-        $jobPost->category = $request->category;
-        $jobPost->description = $request->description;
-        $jobPost->skills = json_encode($request->skills);
-        $jobPost->budget = $request->budget;
-        $jobPost->currency = $request->currency;
-        $jobPost->rate_type = $request->rate_type;
-        $jobPost->job_type = $request->job_type;
-        $jobPost->experience_level = $request->experience_level;
-        $jobPost->location_type = $request->location_type;
-        $jobPost->location = $request->location;
-        $jobPost->status = $request->status ?? 'active';
-        
-        // Handle attachment
-        if ($request->hasFile('attachment')) {
-            $attachmentPath = $request->file('attachment')->store('job_attachments', 'public');
-            $jobPost->attachment = $attachmentPath;
-        }
-        
-        $jobPost->save();
-        
-        $message = $jobPost->status === 'draft' 
-            ? 'Job has been saved as draft.' 
-            : 'Job has been posted successfully.';
+        try {
+            $validatedData = $request->validate([
+                'title' => 'required|string|max:100',
+                'category' => 'required|string',
+                'description' => 'required|string|min:20',
+                'skills' => 'required|array|min:1',
+                'skills.*' => 'string',
+                'budget' => 'required|numeric|min:5',
+                'currency' => 'required|string|in:USD,KES,EUR,GBP',
+                'rate_type' => 'required|string|in:fixed,hourly',
+                'job_type' => 'required|string|in:one-time,ongoing',
+                'experience_level' => 'required|string|in:entry,intermediate,expert',
+                'location_type' => 'required|string|in:remote,on-site,hybrid',
+                'location' => 'nullable|string|max:100',
+                'attachment' => 'nullable|file|max:5120',
+                'status' => 'nullable|string|in:draft,active',
+            ]);
             
-        return redirect()->route('client.jobs')->with('success', $message);
+            \Log::info('Job post validation passed', ['skills' => $request->skills]);
+            
+            $client = Auth::user();
+            
+            if (!$client) {
+                \Log::error('User not authenticated when trying to post a job');
+                return redirect()->route('login')
+                    ->with('error', 'You must be logged in to post a job');
+            }
+            
+            $jobPost = new \App\Models\JobPost();
+            $jobPost->client_id = $client->id;
+            $jobPost->title = $request->title;
+            $jobPost->category = $request->category;
+            $jobPost->description = $request->description;
+            
+            // Ensure skills is properly encoded as JSON
+            if (is_array($request->skills)) {
+                $jobPost->skills = json_encode($request->skills);
+                \Log::info('Skills encoded successfully', ['skills_count' => count($request->skills)]);
+            } else {
+                \Log::warning('Skills is not an array', ['skills' => $request->skills]);
+                $jobPost->skills = json_encode([$request->skills]);
+            }
+            
+            $jobPost->budget = $request->budget;
+            $jobPost->currency = $request->currency;
+            $jobPost->rate_type = $request->rate_type;
+            $jobPost->job_type = $request->job_type;
+            $jobPost->experience_level = $request->experience_level;
+            $jobPost->location_type = $request->location_type;
+            $jobPost->location = $request->location;
+            $jobPost->status = $request->status ?? 'active';
+            
+            // Handle attachment if provided
+            if ($request->hasFile('attachment') && $request->file('attachment')->isValid()) {
+                try {
+                    $path = $request->file('attachment')->store('job_attachments', 'public');
+                    $jobPost->attachment = $path;
+                    \Log::info('Attachment uploaded successfully', ['path' => $path]);
+                } catch (\Exception $e) {
+                    \Log::error('Error uploading attachment: ' . $e->getMessage());
+                    // Continue without the attachment
+                }
+            }
+            
+            $jobPost->save();
+            
+            \Log::info('Job post created successfully', ['job_id' => $jobPost->id]);
+            
+            return redirect()->route('client.jobs')
+                ->with('success', 'Job post created successfully!');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation error creating job post', [
+                'errors' => $e->errors(),
+                'input' => $request->except(['attachment'])
+            ]);
+            return back()->withErrors($e->validator)->withInput();
+        } catch (\Exception $e) {
+            \Log::error('Error creating job post: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'input' => $request->except(['attachment'])
+            ]);
+            return back()->withInput()
+                ->with('error', 'Error: ' . $e->getMessage());
+        }
     }
     
     /**

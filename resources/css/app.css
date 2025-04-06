@@ -1,9 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import Inter font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 /* Custom base styles */
 @layer base {
@@ -193,6 +191,6 @@
     /* Ensure background colors are printed */
     * {
         -webkit-print-color-adjust: exact !important;
-        color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 }

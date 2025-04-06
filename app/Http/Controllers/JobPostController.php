@@ -104,7 +104,7 @@ class JobPostController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'category' => 'required|string|max:100',
-            'description' => 'required|string',
+            'description' => 'required|string|min:20',
             'requirements' => 'required|string',
             'skills' => 'required|array|min:1',
             'experience_level' => 'required|in:entry,intermediate,expert',
@@ -181,7 +181,7 @@ class JobPostController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'category' => 'required|string|max:100',
-            'description' => 'required|string',
+            'description' => 'required|string|min:20',
             'requirements' => 'required|string',
             'skills' => 'required|array|min:1',
             'experience_level' => 'required|in:entry,intermediate,expert',

@@ -8,7 +8,8 @@
                 Verify Your Email
             </h2>
             <p class="mt-2 text-sm text-gray-600">
-                Enter the verification code sent to your email address
+                We've sent a verification code to your email address. 
+                Please check your inbox and enter the 6-digit code below to complete your registration.
             </p>
 
             @if(session('success'))
@@ -29,7 +30,11 @@
             <div class="rounded-md shadow-sm -space-y-px">
                 <div>
                     <label for="email" class="sr-only">Email address</label>
-                    <input id="email" name="email" type="email" autocomplete="email" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm @error('email') border-red-500 @enderror" placeholder="Email address" value="{{ old('email') }}">
+                    <input id="email" name="email" type="email" autocomplete="email" required 
+                        class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm @error('email') border-red-500 @enderror" 
+                        placeholder="Email address" 
+                        value="{{ session('email') ?? old('email') }}" 
+                        {{ session('email') ? 'readonly' : '' }}>
                     @error('email')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
@@ -37,7 +42,9 @@
                 
                 <div class="mt-4">
                     <label for="code" class="sr-only">Verification code</label>
-                    <input id="code" name="code" type="text" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm @error('code') border-red-500 @enderror" placeholder="6 digit verification code" maxlength="6">
+                    <input id="code" name="code" type="text" required 
+                        class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm @error('code') border-red-500 @enderror" 
+                        placeholder="6 digit verification code" maxlength="6" autofocus>
                     @error('code')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
@@ -52,7 +59,7 @@
             
             <div class="text-center text-sm">
                 <p>Didn't receive the code? 
-                    <a href="{{ route('verification.resend') }}" class="font-medium text-indigo-600 hover:text-indigo-500">
+                    <a href="{{ route('verification.resend') }}?email={{ session('email') ?? old('email') }}" class="font-medium text-indigo-600 hover:text-indigo-500">
                         Resend verification code
                     </a>
                 </p>

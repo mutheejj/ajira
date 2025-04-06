@@ -16,6 +16,8 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\FreelancerController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\TestEmailController;
+use App\Http\Controllers\AdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -188,4 +190,32 @@ Route::middleware(['auth', 'client'])->prefix('client')->name('client.')->group(
     Route::patch('/profile', [ClientController::class, 'updateProfile'])->name('update-profile');
     Route::get('/billing', [ClientController::class, 'billing'])->name('billing');
     Route::get('/email-verification', [ClientController::class, 'verifyEmail'])->name('email-verification');
+});
+
+// Test Email Routes
+Route::get('/test-email', [TestEmailController::class, 'index'])->name('test.email');
+Route::post('/test-email/send', [TestEmailController::class, 'sendTestEmail'])->name('test.email.send');
+
+// Admin Routes
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [AdminController::class, 'index'])->name('index');
+    Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
+    
+    // User management
+    Route::get('/users', [AdminController::class, 'users'])->name('users');
+    Route::get('/users/create', [AdminController::class, 'createUser'])->name('users.create');
+    Route::post('/users', [AdminController::class, 'storeUser'])->name('users.store');
+    Route::get('/users/{id}/edit', [AdminController::class, 'editUser'])->name('users.edit');
+    Route::put('/users/{id}', [AdminController::class, 'updateUser'])->name('users.update');
+    Route::delete('/users/{id}', [AdminController::class, 'deleteUser'])->name('users.delete');
+    
+    // Job management
+    Route::get('/jobs', [AdminController::class, 'jobs'])->name('jobs');
+    Route::get('/jobs/{id}', [AdminController::class, 'showJob'])->name('jobs.show');
+    Route::put('/jobs/{id}/status', [AdminController::class, 'updateJobStatus'])->name('jobs.update-status');
+    Route::delete('/jobs/{id}', [AdminController::class, 'deleteJob'])->name('jobs.delete');
+    
+    // Settings
+    Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
+    Route::post('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
 });

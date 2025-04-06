@@ -6,6 +6,11 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>@yield('title', 'Ajira Global')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <style>
         /* Theme transition styles */
         *, *::before, *::after {
@@ -18,7 +23,36 @@
         .no-transition {
             transition: none !important;
         }
+        
+        /* Select2 styles */
+        .select2-container--default .select2-selection--multiple {
+            border-color: rgb(209, 213, 219);
+            border-radius: 0.375rem;
+        }
+        .dark .select2-container--default .select2-selection--multiple {
+            background-color: rgb(55, 65, 81);
+            border-color: rgb(75, 85, 99);
+        }
+        .dark .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            background-color: rgb(75, 85, 99);
+            color: white;
+            border-color: rgb(107, 114, 128);
+        }
+        .dark .select2-dropdown {
+            background-color: rgb(55, 65, 81);
+            color: white;
+        }
+        .dark .select2-container--default .select2-results__option[aria-selected=true] {
+            background-color: rgb(75, 85, 99);
+        }
+        .dark .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: rgb(79, 70, 229);
+        }
+        .select2-container {
+            z-index: 9999;
+        }
     </style>
+    @yield('styles')
 </head>
 <body class="min-h-screen bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-white transition-colors duration-300" id="app-body">
     <div class="flex flex-col min-h-screen">

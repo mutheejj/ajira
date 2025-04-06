@@ -583,6 +583,7 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     // Job Status Modal
     function toggleJobStatusModal(jobId = null) {
@@ -658,7 +659,11 @@
         
         closeModalBtn?.addEventListener('click', closeModal);
         cancelBtn?.addEventListener('click', closeModal);
-        overlay?.addEventListener('click', closeModal);
+        overlay?.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                closeModal();
+            }
+        });
         
         // Toggle location field visibility based on location type
         locationTypeSelect?.addEventListener('change', function() {
@@ -669,14 +674,60 @@
             }
         });
         
-        // Initialize select2 for skills (if select2 is available)
-        if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
-            jQuery('#skills').select2({
+        // Show modal if there are any form errors
+        @if($errors->any())
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        @endif
+        
+        // Initialize select2
+        try {
+            $('#skills').select2({
                 placeholder: 'Select required skills',
                 allowClear: true,
-                tags: true
+                tags: true,
+                dropdownParent: $('#jobPostModal')
             });
+        } catch (e) {
+            console.error('Error initializing Select2:', e);
         }
     });
 </script>
+@endsection
+
+@section('styles')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    /* Fix for Select2 in modals */
+    .select2-container {
+        z-index: 9999;
+    }
+    .select2-dropdown {
+        z-index: 9999;
+    }
+    /* Custom styling for Select2 */
+    .select2-container--default .select2-selection--multiple {
+        border-color: rgb(209, 213, 219);
+        border-radius: 0.375rem;
+    }
+    .dark .select2-container--default .select2-selection--multiple {
+        background-color: rgb(55, 65, 81);
+        border-color: rgb(75, 85, 99);
+    }
+    .dark .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        background-color: rgb(75, 85, 99);
+        color: white;
+        border-color: rgb(107, 114, 128);
+    }
+    .dark .select2-dropdown {
+        background-color: rgb(55, 65, 81);
+        color: white;
+    }
+    .dark .select2-container--default .select2-results__option[aria-selected=true] {
+        background-color: rgb(75, 85, 99);
+    }
+    .dark .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background-color: rgb(79, 70, 229);
+    }
+</style>
 @endsection 

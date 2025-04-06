@@ -4,8 +4,8 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Auth;
 
 class AdminMiddleware
 {
@@ -16,13 +16,16 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!Auth::check() || !Auth::user()->isAdmin()) {
-            if ($request->expectsJson()) {
-                return response()->json(['error' => 'Unauthorized. Admin access required.'], 403);
-            }
-            return redirect()->route('home')->with('error', 'Unauthorized. Admin access required.');
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'You must be logged in to access the admin area.');
         }
-
+        
+        // Check if user is an admin
+        if (Auth::user()->user_type !== 'admin') {
+            return redirect()->route('home')->with('error', 'You do not have permission to access the admin area.');
+        }
+        
         return $next($request);
     }
 } 
