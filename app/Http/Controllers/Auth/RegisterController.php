@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Mail;
 
 class RegisterController extends Controller
 {
@@ -20,7 +21,7 @@ class RegisterController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/dashboard';
+    protected $redirectTo = '/verify-email';
 
     /**
      * Create a new controller instance.
@@ -100,7 +101,7 @@ class RegisterController extends Controller
         $verification->save();
 
         // Send verification email
-        // $this->sendVerificationEmail($user, $verification->code);
+        $this->sendVerificationEmail($user, $verification->code);
 
         return $user;
     }
@@ -127,10 +128,9 @@ class RegisterController extends Controller
 
         event(new Registered($user = $this->create($request->all())));
 
-        $this->guard()->login($user);
-
-        return $this->registered($request, $user)
-            ?: redirect($this->redirectTo);
+        // User registered but not logged in yet - must verify email first
+        return redirect()->route('verification.notice')
+            ->with('success', 'Registration successful! Please check your email for verification code.');
     }
 
     /**
@@ -142,7 +142,109 @@ class RegisterController extends Controller
      */
     protected function sendVerificationEmail(User $user, $code)
     {
-        // Implementation for sending verification email
-        // Will be implemented later
+        $data = [
+            'user' => $user,
+            'code' => $code
+        ];
+        
+        Mail::send('emails.verification', $data, function($message) use ($user) {
+            $message->to($user->email, $user->name)
+                    ->subject('Verify Your Email Address');
+        });
+    }
+    
+    /**
+     * Show the email verification form.
+     */
+    public function showVerificationForm()
+    {
+        return view('auth.verify-email');
+    }
+    
+    /**
+     * Verify user's email with the provided code.
+     */
+    public function verifyEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'code' => 'required|string|size:6',
+        ]);
+        
+        $user = User::where('email', $request->email)->first();
+        
+        if (!$user) {
+            return back()->withErrors(['email' => 'User not found.']);
+        }
+        
+        $verification = EmailVerification::where('user_id', $user->id)
+            ->where('code', $request->code)
+            ->first();
+            
+        if (!$verification) {
+            return back()->withErrors(['code' => 'Invalid verification code.']);
+        }
+        
+        if ($verification->hasExpired()) {
+            return back()->withErrors(['code' => 'Verification code has expired.']);
+        }
+        
+        // Mark email as verified
+        $user->email_verified_at = now();
+        $user->save();
+        
+        // Delete the verification code
+        $verification->delete();
+        
+        // Log the user in
+        auth()->login($user);
+        
+        // Redirect based on user type
+        if ($user->isClient()) {
+            return redirect()->route('client.dashboard')
+                ->with('success', 'Email verified successfully!');
+        } else {
+            return redirect()->route('job-seeker.dashboard')
+                ->with('success', 'Email verified successfully!');
+        }
+    }
+    
+    /**
+     * Resend verification code to the user.
+     */
+    public function resendVerification(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
+        
+        $user = User::where('email', $request->email)->first();
+        
+        if (!$user) {
+            return back()->withErrors(['email' => 'User not found.']);
+        }
+        
+        // If user is already verified
+        if ($user->email_verified_at) {
+            return redirect()->route('login')
+                ->with('info', 'Your email is already verified. Please login.');
+        }
+        
+        // Delete existing verification code
+        if ($user->emailVerification) {
+            $user->emailVerification->delete();
+        }
+        
+        // Create new verification code
+        $verification = new EmailVerification([
+            'user_id' => $user->id,
+            'expires_at' => now()->addHours(24),
+        ]);
+        $verification->save();
+        
+        // Send new verification code
+        $this->sendVerificationEmail($user, $verification->code);
+        
+        return back()->with('success', 'A new verification code has been sent to your email.');
     }
 } 

@@ -94,6 +94,11 @@ Route::group(['middleware' => 'guest'], function () {
     Route::post('/forgot-password', [App\Http\Controllers\Auth\AuthController::class, 'sendResetPasswordLink'])->name('password.email');
     Route::get('/reset-password/{token}', [App\Http\Controllers\Auth\AuthController::class, 'showResetPasswordForm'])->name('password.reset');
     Route::post('/reset-password', [App\Http\Controllers\Auth\AuthController::class, 'resetPassword'])->name('password.update');
+    
+    // Email Verification (for non-authenticated users after registration)
+    Route::get('/verify-email', [App\Http\Controllers\Auth\RegisterController::class, 'showVerificationForm'])->name('verification.notice');
+    Route::post('/verify-email', [App\Http\Controllers\Auth\RegisterController::class, 'verifyEmail'])->name('verification.verify');
+    Route::get('/resend-verification', [App\Http\Controllers\Auth\RegisterController::class, 'resendVerification'])->name('verification.resend');
 });
 
 // Authentication Required Routes
@@ -178,8 +183,9 @@ Route::middleware(['auth', 'client'])->prefix('client')->name('client.')->group(
     Route::get('/dashboard', [ClientController::class, 'dashboard'])->name('dashboard');
     Route::get('/jobs', [ClientController::class, 'jobs'])->name('jobs');
     Route::get('/create-job', [ClientController::class, 'createJob'])->name('create-job');
+    Route::post('/store-job', [ClientController::class, 'storeJob'])->name('store-job');
     Route::get('/profile', [ClientController::class, 'profile'])->name('profile');
     Route::patch('/profile', [ClientController::class, 'updateProfile'])->name('update-profile');
     Route::get('/billing', [ClientController::class, 'billing'])->name('billing');
-    Route::get('/email-verification', [ClientController::class, 'emailVerification'])->name('verify-email');
+    Route::get('/email-verification', [ClientController::class, 'verifyEmail'])->name('email-verification');
 });

@@ -3,7 +3,24 @@
 @section('title', 'My Jobs | Ajira Global')
 
 @section('content')
-<div class="container mx-auto px-4 py-8">
+<div class="container mx-auto px-4 py-6 lg:px-8">
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg">
+        <!-- Header -->
+        <div class="p-4 md:p-6 border-b border-gray-200 dark:border-gray-700 flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div>
+                <h1 class="text-xl font-bold text-gray-900 dark:text-white">Your Job Postings</h1>
+                <p class="mt-1 text-gray-600 dark:text-gray-400">Manage your posted jobs and view applications</p>
+            </div>
+            
+            <!-- Add Post Job Button to trigger the modal -->
+            <button id="openJobModal" class="mt-4 md:mt-0 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-sm flex items-center transition-colors duration-150">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                </svg>
+                Post a New Job
+            </button>
+        </div>
+
     <!-- Page Header -->
     <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
         <div>
@@ -229,6 +246,254 @@
     </div>
 </div>
 
+<!-- Job Post Modal -->
+<div id="jobPostModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div id="modalOverlay" class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity"></div>
+        
+        <!-- Modal content -->
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+            <!-- Modal header -->
+            <div class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600">
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                    Post a New Job
+                </h3>
+                <button id="closeJobModal" type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                </button>
+            </div>
+            
+            <!-- Modal body -->
+            <div class="p-4 max-h-[80vh] overflow-y-auto">
+                <form id="jobPostForm" action="{{ route('client.store-job') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Job Title -->
+                        <div class="col-span-2">
+                            <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Title*</label>
+                            <input type="text" id="title" name="title" value="{{ old('title') }}" required placeholder="E.g., WordPress Developer Needed for E-commerce Site" class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                            @error('title')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        
+                        <!-- Job Description -->
+                        <div class="col-span-2">
+                            <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Description*</label>
+                            <textarea id="description" name="description" rows="4" required placeholder="Provide a detailed description of the job requirements, responsibilities, and any specific skills needed..." class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{{ old('description') }}</textarea>
+                            @error('description')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        
+                        <!-- Category -->
+                        <div>
+                            <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Category*</label>
+                            <select id="category" name="category" required class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                <option value="">Select a category</option>
+                                <option value="Web Development">Web Development</option>
+                                <option value="Mobile Development">Mobile Development</option>
+                                <option value="UI/UX Design">UI/UX Design</option>
+                                <option value="Graphic Design">Graphic Design</option>
+                                <option value="Content Writing">Content Writing</option>
+                                <option value="Digital Marketing">Digital Marketing</option>
+                                <option value="SEO">SEO</option>
+                                <option value="Social Media Management">Social Media Management</option>
+                                <option value="Video Editing">Video Editing</option>
+                                <option value="Animation">Animation</option>
+                                <option value="Data Entry">Data Entry</option>
+                                <option value="Virtual Assistant">Virtual Assistant</option>
+                                <option value="Customer Service">Customer Service</option>
+                                <option value="Accounting">Accounting</option>
+                                <option value="Project Management">Project Management</option>
+                                <option value="Legal">Legal</option>
+                                <option value="Engineering">Engineering</option>
+                                <option value="Translation">Translation</option>
+                                <option value="Data Science">Data Science</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            @error('category')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        
+                        <!-- Job Type -->
+                        <div>
+                            <label for="job_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Type*</label>
+                            <select id="job_type" name="job_type" required class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                <option value="one-time" {{ old('job_type') == 'one-time' ? 'selected' : '' }}>One-time Project</option>
+                                <option value="ongoing" {{ old('job_type') == 'ongoing' ? 'selected' : '' }}>Ongoing Work</option>
+                            </select>
+                            @error('job_type')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        
+                        <!-- Skills -->
+                        <div class="col-span-2">
+                            <label for="skills" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Required Skills*</label>
+                            <select id="skills" name="skills[]" multiple required class="select2 w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                <option value="HTML">HTML</option>
+                                <option value="CSS">CSS</option>
+                                <option value="JavaScript">JavaScript</option>
+                                <option value="React">React</option>
+                                <option value="Vue.js">Vue.js</option>
+                                <option value="Angular">Angular</option>
+                                <option value="Node.js">Node.js</option>
+                                <option value="Python">Python</option>
+                                <option value="Django">Django</option>
+                                <option value="Flask">Flask</option>
+                                <option value="PHP">PHP</option>
+                                <option value="Laravel">Laravel</option>
+                                <option value="WordPress">WordPress</option>
+                                <option value="Shopify">Shopify</option>
+                                <option value="Ruby">Ruby</option>
+                                <option value="Ruby on Rails">Ruby on Rails</option>
+                                <option value="Java">Java</option>
+                                <option value="Spring">Spring</option>
+                                <option value="C#">C#</option>
+                                <option value=".NET">.NET</option>
+                                <option value="Swift">Swift</option>
+                                <option value="Kotlin">Kotlin</option>
+                                <option value="Flutter">Flutter</option>
+                                <option value="React Native">React Native</option>
+                                <option value="iOS">iOS</option>
+                                <option value="Android">Android</option>
+                                <option value="SQL">SQL</option>
+                                <option value="MongoDB">MongoDB</option>
+                                <option value="MySQL">MySQL</option>
+                                <option value="PostgreSQL">PostgreSQL</option>
+                                <option value="AWS">AWS</option>
+                                <option value="Docker">Docker</option>
+                                <option value="Kubernetes">Kubernetes</option>
+                                <option value="Git">Git</option>
+                                <option value="Figma">Figma</option>
+                                <option value="Adobe XD">Adobe XD</option>
+                                <option value="Photoshop">Photoshop</option>
+                                <option value="Illustrator">Illustrator</option>
+                                <option value="SEO">SEO</option>
+                                <option value="Content Writing">Content Writing</option>
+                                <option value="Copywriting">Copywriting</option>
+                                <option value="Technical Writing">Technical Writing</option>
+                                <option value="Data Analysis">Data Analysis</option>
+                                <option value="Machine Learning">Machine Learning</option>
+                                <option value="AI">AI</option>
+                            </select>
+                            @error('skills')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        
+                        <hr class="col-span-2 border-gray-200 dark:border-gray-700">
+                        
+                        <!-- Budget Section -->
+                        <div class="col-span-2">
+                            <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Budget and Timeline</h2>
+                        </div>
+                        
+                        <!-- Rate Type -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Payment Type*</label>
+                            <div class="flex gap-4 mt-1">
+                                <div class="flex items-center">
+                                    <input type="radio" id="fixed" name="rate_type" value="fixed" {{ old('rate_type') == 'fixed' || !old('rate_type') ? 'checked' : '' }} class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                                    <label for="fixed" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Fixed Price</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="radio" id="hourly" name="rate_type" value="hourly" {{ old('rate_type') == 'hourly' ? 'checked' : '' }} class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                                    <label for="hourly" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Hourly Rate</label>
+                                </div>
+                            </div>
+                            @error('rate_type')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        
+                        <!-- Budget -->
+                        <div class="flex items-center space-x-2">
+                            <div class="w-1/3">
+                                <label for="currency" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Currency*</label>
+                                <select id="currency" name="currency" required class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                    <option value="USD" {{ old('currency') == 'USD' || !old('currency') ? 'selected' : '' }}>USD</option>
+                                    <option value="KES" {{ old('currency') == 'KES' ? 'selected' : '' }}>KES</option>
+                                    <option value="EUR" {{ old('currency') == 'EUR' ? 'selected' : '' }}>EUR</option>
+                                    <option value="GBP" {{ old('currency') == 'GBP' ? 'selected' : '' }}>GBP</option>
+                                </select>
+                            </div>
+                            <div class="flex-1">
+                                <label for="budget" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Budget Amount*</label>
+                                <input type="number" id="budget" name="budget" value="{{ old('budget') }}" required min="1" step="0.01" placeholder="Enter amount" class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                @error('budget')
+                                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+                        
+                        <!-- Experience Level -->
+                        <div>
+                            <label for="experience_level" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Experience Level Required*</label>
+                            <select id="experience_level" name="experience_level" required class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                <option value="entry" {{ old('experience_level') == 'entry' ? 'selected' : '' }}>Entry Level</option>
+                                <option value="intermediate" {{ old('experience_level') == 'intermediate' ? 'selected' : '' }}>Intermediate</option>
+                                <option value="expert" {{ old('experience_level') == 'expert' ? 'selected' : '' }}>Expert</option>
+                            </select>
+                            @error('experience_level')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        
+                        <!-- Location Type -->
+                        <div>
+                            <label for="location_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location Type*</label>
+                            <select id="location_type" name="location_type" required class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                <option value="remote" {{ old('location_type') == 'remote' ? 'selected' : '' }}>Remote</option>
+                                <option value="on-site" {{ old('location_type') == 'on-site' ? 'selected' : '' }}>On-site</option>
+                                <option value="hybrid" {{ old('location_type') == 'hybrid' ? 'selected' : '' }}>Hybrid</option>
+                            </select>
+                            @error('location_type')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        
+                        <!-- Location for on-site/hybrid -->
+                        <div id="locationField" class="location-field" style="{{ old('location_type') == 'remote' ? 'display:none' : '' }}">
+                            <label for="location" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location Address</label>
+                            <input type="text" id="location" name="location" value="{{ old('location') }}" placeholder="City, State, Country" class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                            @error('location')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        
+                        <!-- Status -->
+                        <div class="col-span-2">
+                            <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Status*</label>
+                            <select id="status" name="status" required class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                <option value="active" {{ old('status') == 'active' ? 'selected' : '' }}>Active (Publish Immediately)</option>
+                                <option value="draft" {{ old('status') == 'draft' ? 'selected' : '' }}>Draft (Save for Later)</option>
+                            </select>
+                            @error('status')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+                
+                    <!-- Modal footer -->
+                    <div class="flex items-center justify-end space-x-2 mt-6">
+                        <button type="button" id="cancelJobPost" class="px-5 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md transition-colors duration-150">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors duration-150">
+                            Post Job
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Status Change Modal -->
 <div id="job-status-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -367,6 +632,51 @@
         sortDirSelect.addEventListener('change', function() {
             document.querySelector('form').submit();
         });
+    });
+
+    // Job Post Modal Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('jobPostModal');
+        const openModalBtn = document.getElementById('openJobModal');
+        const closeModalBtn = document.getElementById('closeJobModal');
+        const cancelBtn = document.getElementById('cancelJobPost');
+        const overlay = document.getElementById('modalOverlay');
+        const locationTypeSelect = document.getElementById('location_type');
+        const locationField = document.getElementById('locationField');
+        
+        // Open modal
+        openModalBtn?.addEventListener('click', function() {
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        });
+        
+        // Close modal
+        const closeModal = function() {
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        };
+        
+        closeModalBtn?.addEventListener('click', closeModal);
+        cancelBtn?.addEventListener('click', closeModal);
+        overlay?.addEventListener('click', closeModal);
+        
+        // Toggle location field visibility based on location type
+        locationTypeSelect?.addEventListener('change', function() {
+            if (this.value === 'remote') {
+                locationField.style.display = 'none';
+            } else {
+                locationField.style.display = 'block';
+            }
+        });
+        
+        // Initialize select2 for skills (if select2 is available)
+        if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
+            jQuery('#skills').select2({
+                placeholder: 'Select required skills',
+                allowClear: true,
+                tags: true
+            });
+        }
     });
 </script>
 @endsection 

@@ -23,7 +23,7 @@
     @endif
     
     <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
-        <form action="{{ route('jobs.store') }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('client.store-job') }}" method="POST" enctype="multipart/form-data">
             @csrf
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -48,14 +48,14 @@
                 
                 <!-- Category -->
                 <div>
-                    <label for="category_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Category*</label>
-                    <select id="category_id" name="category_id" required class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                    <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Category*</label>
+                    <select id="category" name="category" required class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                         <option value="">Select a category</option>
                         @foreach($categories as $category)
-                        <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                        <option value="{{ $category->name }}" {{ old('category') == $category->name ? 'selected' : '' }}>{{ $category->name }}</option>
                         @endforeach
                     </select>
-                    @error('category_id')
+                    @error('category')
                     <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
@@ -64,10 +64,8 @@
                 <div>
                     <label for="job_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Type*</label>
                     <select id="job_type" name="job_type" required class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                        <option value="contract" {{ old('job_type') == 'contract' ? 'selected' : '' }}>Contract</option>
-                        <option value="project" {{ old('job_type') == 'project' ? 'selected' : '' }}>One-time Project</option>
-                        <option value="part-time" {{ old('job_type') == 'part-time' ? 'selected' : '' }}>Part-time</option>
-                        <option value="full-time" {{ old('job_type') == 'full-time' ? 'selected' : '' }}>Full-time</option>
+                        <option value="one-time" {{ old('job_type') == 'one-time' ? 'selected' : '' }}>One-time Project</option>
+                        <option value="ongoing" {{ old('job_type') == 'ongoing' ? 'selected' : '' }}>Ongoing Work</option>
                     </select>
                     @error('job_type')
                     <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -79,7 +77,7 @@
                     <label for="skills" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Required Skills*</label>
                     <select id="skills" name="skills[]" multiple required class="select2 w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                         @foreach($skills as $skill)
-                        <option value="{{ $skill->id }}" {{ in_array($skill->id, old('skills', [])) ? 'selected' : '' }}>{{ $skill->name }}</option>
+                        <option value="{{ $skill->name }}" {{ in_array($skill->name, old('skills', [])) ? 'selected' : '' }}>{{ $skill->name }}</option>
                         @endforeach
                     </select>
                     @error('skills')
@@ -121,6 +119,7 @@
                             <option value="USD" {{ old('currency') == 'USD' || !old('currency') ? 'selected' : '' }}>USD</option>
                             <option value="EUR" {{ old('currency') == 'EUR' ? 'selected' : '' }}>EUR</option>
                             <option value="GBP" {{ old('currency') == 'GBP' ? 'selected' : '' }}>GBP</option>
+                            <option value="KES" {{ old('currency') == 'KES' ? 'selected' : '' }}>KES</option>
                         </select>
                     </div>
                     <div class="flex-1">
@@ -174,7 +173,7 @@
                     <label for="location_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location Type*</label>
                     <select id="location_type" name="location_type" required class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                         <option value="remote" {{ old('location_type') == 'remote' ? 'selected' : '' }}>Remote</option>
-                        <option value="onsite" {{ old('location_type') == 'onsite' ? 'selected' : '' }}>On-site</option>
+                        <option value="on-site" {{ old('location_type') == 'on-site' ? 'selected' : '' }}>On-site</option>
                         <option value="hybrid" {{ old('location_type') == 'hybrid' ? 'selected' : '' }}>Hybrid</option>
                     </select>
                     @error('location_type')

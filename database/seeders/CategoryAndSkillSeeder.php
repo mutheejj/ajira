@@ -3,9 +3,10 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use App\Models\Category;
 use App\Models\Skill;
-use Illuminate\Support\Str;
 
 class CategoryAndSkillSeeder extends Seeder
 {
@@ -14,188 +15,137 @@ class CategoryAndSkillSeeder extends Seeder
      */
     public function run(): void
     {
-        // Define main categories
-        $mainCategories = [
+        // Clear existing records to avoid duplicates
+        DB::table('skills')->truncate();
+        DB::table('categories')->truncate();
+        
+        // Define categories
+        $categories = [
             [
                 'name' => 'Web Development',
-                'description' => 'Website and web application development services',
+                'slug' => 'web-development',
+                'description' => 'Development of websites and web applications',
                 'icon' => 'code',
                 'skills' => [
-                    'HTML', 'CSS', 'JavaScript', 'TypeScript', 'PHP', 'Python', 'Ruby', 'Java',
-                    'React', 'Angular', 'Vue.js', 'Node.js', 'Laravel', 'Django', 'Ruby on Rails',
-                    'WordPress', 'Shopify', 'Magento', 'Drupal', 'Joomla', 'Express.js',
-                    'Next.js', 'Nuxt.js', 'Gatsby', 'Svelte', 'jQuery', 'Bootstrap', 'Tailwind CSS'
+                    'HTML', 'CSS', 'JavaScript', 'TypeScript', 'React', 'Vue.js', 'Angular',
+                    'Node.js', 'PHP', 'Laravel', 'WordPress', 'Django', 'Ruby on Rails',
+                    'ASP.NET', 'Express.js', 'Gatsby', 'Next.js', 'Svelte'
                 ]
             ],
             [
                 'name' => 'Mobile Development',
-                'description' => 'Mobile application development for iOS and Android',
-                'icon' => 'smartphone',
+                'slug' => 'mobile-development',
+                'description' => 'Development of mobile applications for iOS and Android',
+                'icon' => 'mobile',
                 'skills' => [
-                    'Swift', 'Objective-C', 'Kotlin', 'Java (Android)', 'React Native', 'Flutter',
-                    'Xamarin', 'Ionic', 'Android Studio', 'Xcode', 'Firebase', 'Mobile UI Design',
-                    'App Store Optimization', 'Mobile App Testing', 'Push Notifications'
+                    'iOS', 'Swift', 'Android', 'Kotlin', 'Java', 'React Native',
+                    'Flutter', 'Xamarin', 'Ionic', 'Objective-C', 'Firebase'
                 ]
             ],
             [
-                'name' => 'Design',
-                'description' => 'Graphic, UI/UX, and visual design services',
-                'icon' => 'brush',
+                'name' => 'UI/UX Design',
+                'slug' => 'ui-ux-design',
+                'description' => 'User interface and user experience design',
+                'icon' => 'design',
                 'skills' => [
-                    'UI Design', 'UX Design', 'Graphic Design', 'Logo Design', 'Illustration',
-                    'Figma', 'Adobe XD', 'Sketch', 'Photoshop', 'Illustrator', 'InDesign',
-                    'After Effects', 'Premiere Pro', 'Brand Identity', 'Web Design',
-                    'App Design', 'Print Design', 'Animation', 'Typography', 'Icon Design',
-                    'Wireframing', 'Prototyping'
+                    'Wireframing', 'Prototyping', 'User Research', 'Usability Testing',
+                    'Interaction Design', 'Visual Design', 'Figma', 'Adobe XD',
+                    'Sketch', 'InVision', 'User Flows', 'Information Architecture'
                 ]
             ],
             [
-                'name' => 'Writing & Translation',
-                'description' => 'Content writing, copywriting, and translation services',
-                'icon' => 'edit',
+                'name' => 'Graphic Design',
+                'slug' => 'graphic-design',
+                'description' => 'Creation of visual content to communicate messages',
+                'icon' => 'palette',
                 'skills' => [
-                    'Content Writing', 'Copywriting', 'Technical Writing', 'SEO Writing',
-                    'Blog Writing', 'Creative Writing', 'Editing', 'Proofreading', 'Translation',
-                    'Localization', 'Transcription', 'Research Writing', 'Grant Writing',
-                    'Ghostwriting', 'Resume Writing', 'Product Descriptions'
+                    'Adobe Photoshop', 'Adobe Illustrator', 'Adobe InDesign',
+                    'Logo Design', 'Brand Identity', 'Typography', 'Print Design',
+                    'Icon Design', 'Illustration', 'GIMP', 'CorelDRAW'
                 ]
             ],
             [
-                'name' => 'Data Science & Analytics',
-                'description' => 'Data analysis, machine learning, and statistical services',
-                'icon' => 'bar-chart',
+                'name' => 'Content Writing',
+                'slug' => 'content-writing',
+                'description' => 'Creation of written content for websites, blogs, and marketing materials',
+                'icon' => 'pencil',
                 'skills' => [
-                    'Data Analysis', 'Machine Learning', 'Deep Learning', 'Natural Language Processing',
-                    'Computer Vision', 'Statistical Analysis', 'Python for Data Science', 'R Programming',
-                    'SQL', 'Tableau', 'Power BI', 'Excel', 'Data Visualization', 'TensorFlow', 'PyTorch',
-                    'Scikit-learn', 'Pandas', 'NumPy', 'Big Data', 'Hadoop', 'Spark'
+                    'Copywriting', 'Blog Writing', 'Technical Writing', 'SEO Writing',
+                    'Content Strategy', 'Editing', 'Proofreading', 'Research',
+                    'Storytelling', 'Creative Writing', 'Product Descriptions'
                 ]
             ],
             [
                 'name' => 'Digital Marketing',
-                'description' => 'Online marketing, SEO, and advertising services',
-                'icon' => 'trending-up',
+                'slug' => 'digital-marketing',
+                'description' => 'Promotion of products or services using digital channels',
+                'icon' => 'megaphone',
                 'skills' => [
-                    'SEO', 'SEM', 'Social Media Marketing', 'Content Marketing', 'Email Marketing',
-                    'Google Ads', 'Facebook Ads', 'Instagram Marketing', 'LinkedIn Marketing',
-                    'TikTok Marketing', 'YouTube Marketing', 'Influencer Marketing', 'Affiliate Marketing',
-                    'Marketing Strategy', 'Analytics', 'Conversion Rate Optimization', 'A/B Testing'
+                    'SEO', 'SEM', 'SMM', 'Email Marketing', 'Content Marketing',
+                    'Google Ads', 'Facebook Ads', 'Analytics', 'Conversion Optimization',
+                    'Marketing Automation', 'Growth Hacking', 'Influencer Marketing'
                 ]
             ],
             [
-                'name' => 'Business & Finance',
-                'description' => 'Business consulting, accounting, and financial services',
-                'icon' => 'briefcase',
+                'name' => 'Data Science',
+                'slug' => 'data-science',
+                'description' => 'Extraction of knowledge and insights from data',
+                'icon' => 'chart',
                 'skills' => [
-                    'Business Analysis', 'Financial Analysis', 'Business Strategy', 'Consulting',
-                    'Accounting', 'Bookkeeping', 'Financial Modeling', 'Valuation', 'Tax Preparation',
-                    'Business Planning', 'Market Research', 'Project Management', 'Virtual Assistance',
-                    'Customer Service', 'Data Entry', 'Excel', 'QuickBooks', 'Financial Reporting'
+                    'Python', 'R', 'SQL', 'Machine Learning', 'Data Visualization',
+                    'Statistical Analysis', 'Big Data', 'TensorFlow', 'PyTorch',
+                    'Pandas', 'NumPy', 'Deep Learning', 'NLP', 'Data Mining'
                 ]
             ],
             [
-                'name' => 'Audio & Video',
-                'description' => 'Audio engineering, video editing, and production services',
+                'name' => 'Project Management',
+                'slug' => 'project-management',
+                'description' => 'Planning, organizing, and overseeing projects',
+                'icon' => 'clipboard',
+                'skills' => [
+                    'Agile', 'Scrum', 'Kanban', 'JIRA', 'Microsoft Project',
+                    'Risk Management', 'Budgeting', 'Team Leadership',
+                    'Stakeholder Management', 'PMP', 'Prince2', 'Trello'
+                ]
+            ],
+            [
+                'name' => 'Virtual Assistance',
+                'slug' => 'virtual-assistance',
+                'description' => 'Remote administrative and business support services',
+                'icon' => 'assistant',
+                'skills' => [
+                    'Administrative Support', 'Email Management', 'Calendar Management',
+                    'Customer Service', 'Data Entry', 'Bookkeeping', 'CRM Management',
+                    'Travel Arrangements', 'Social Media Management', 'Research'
+                ]
+            ],
+            [
+                'name' => 'Video Production',
+                'slug' => 'video-production',
+                'description' => 'Creation of video content for various platforms',
                 'icon' => 'video',
                 'skills' => [
-                    'Video Editing', 'Audio Editing', 'Voice Over', 'Video Production', 'Animation',
-                    'Motion Graphics', '3D Modeling', 'Podcast Production', 'Music Production',
-                    'Sound Design', 'Mixing', 'Mastering', 'Filming', 'Post-production', 'Color Grading',
-                    'Captioning', 'Subtitling'
+                    'Video Editing', 'Animation', 'Motion Graphics', 'Adobe Premiere Pro',
+                    'After Effects', 'Final Cut Pro', 'Videography', 'Storytelling',
+                    'Color Grading', 'Sound Design', 'Scriptwriting'
                 ]
             ],
         ];
-
-        // Create main categories and their skills
-        foreach ($mainCategories as $categoryData) {
-            $category = Category::create([
-                'name' => $categoryData['name'],
-                'slug' => Str::slug($categoryData['name']),
-                'description' => $categoryData['description'],
-                'icon' => $categoryData['icon'],
-            ]);
-
+        
+        // Insert categories and skills
+        foreach ($categories as $categoryData) {
+            $skills = $categoryData['skills'];
+            unset($categoryData['skills']);
+            
+            // Create category
+            $category = Category::create($categoryData);
+            
             // Create skills for this category
-            foreach ($categoryData['skills'] as $skillName) {
+            foreach ($skills as $skillName) {
                 Skill::create([
                     'name' => $skillName,
                     'slug' => Str::slug($skillName),
-                    'description' => 'Skill in ' . $skillName,
                     'category_id' => $category->id
-                ]);
-            }
-        }
-
-        // Add subcategories to Web Development
-        $webDevCategory = Category::where('slug', 'web-development')->first();
-        if ($webDevCategory) {
-            $webDevSubcategories = [
-                [
-                    'name' => 'Frontend Development',
-                    'description' => 'Client-side web development',
-                    'icon' => 'layout'
-                ],
-                [
-                    'name' => 'Backend Development',
-                    'description' => 'Server-side web development',
-                    'icon' => 'server'
-                ],
-                [
-                    'name' => 'CMS Development',
-                    'description' => 'Content Management System development',
-                    'icon' => 'file-text'
-                ],
-                [
-                    'name' => 'E-commerce Development',
-                    'description' => 'Online store and shopping cart development',
-                    'icon' => 'shopping-cart'
-                ],
-            ];
-
-            foreach ($webDevSubcategories as $subcategory) {
-                Category::create([
-                    'name' => $subcategory['name'],
-                    'slug' => Str::slug($subcategory['name']),
-                    'description' => $subcategory['description'],
-                    'icon' => $subcategory['icon'],
-                    'parent_id' => $webDevCategory->id
-                ]);
-            }
-        }
-
-        // Add subcategories to Design
-        $designCategory = Category::where('slug', 'design')->first();
-        if ($designCategory) {
-            $designSubcategories = [
-                [
-                    'name' => 'UI/UX Design',
-                    'description' => 'User interface and user experience design',
-                    'icon' => 'layers'
-                ],
-                [
-                    'name' => 'Graphic Design',
-                    'description' => 'Visual and brand identity design',
-                    'icon' => 'image'
-                ],
-                [
-                    'name' => 'Logo Design',
-                    'description' => 'Brand marks and visual identity design',
-                    'icon' => 'award'
-                ],
-                [
-                    'name' => 'Illustration',
-                    'description' => 'Digital and traditional illustration',
-                    'icon' => 'pen-tool'
-                ],
-            ];
-
-            foreach ($designSubcategories as $subcategory) {
-                Category::create([
-                    'name' => $subcategory['name'],
-                    'slug' => Str::slug($subcategory['name']),
-                    'description' => $subcategory['description'],
-                    'icon' => $subcategory['icon'],
-                    'parent_id' => $designCategory->id
                 ]);
             }
         }
