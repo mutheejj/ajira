@@ -26,7 +26,7 @@
                 <select name="category" id="category" class="block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     <option value="">All Categories</option>
                     @foreach($categories as $category)
-                    <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                    <option value="{{ $category }}" {{ request('category') == $category ? 'selected' : '' }}>{{ $category }}</option>
                     @endforeach
                 </select>
             </div>
@@ -130,11 +130,11 @@
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900 dark:text-white">{{ $job->user->name }}</div>
-                            <div class="text-sm text-gray-500 dark:text-gray-400">{{ $job->user->email }}</div>
+                            <div class="text-sm text-gray-900 dark:text-white">{{ $job->client->name }}</div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">{{ $job->client->email }}</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900 dark:text-white">{{ $job->category->name ?? 'N/A' }}</div>
+                            <div class="text-sm text-gray-900 dark:text-white">{{ $job->category }}</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm text-gray-900 dark:text-white">${{ $job->budget }}</div>

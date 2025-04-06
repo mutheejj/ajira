@@ -233,7 +233,14 @@ class AdminController extends Controller
         // Get categories for filter
         $categories = JobPost::distinct('category')->pluck('category');
         
-        return view('admin.jobs.index', compact('jobs', 'categories'));
+        // Get stats for display
+        $stats = [
+            'total_jobs' => JobPost::count(),
+            'active_jobs' => JobPost::where('status', 'active')->count(),
+            'total_applications' => \App\Models\Application::count(),
+        ];
+        
+        return view('admin.jobs.index', compact('jobs', 'categories', 'stats'));
     }
     
     /**

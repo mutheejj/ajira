@@ -76,7 +76,7 @@
                 <a href="{{ route('admin.users') }}" class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">View All</a>
             </div>
             <div class="px-6 py-4 divide-y divide-gray-200 dark:divide-gray-700">
-                @forelse($recent_users as $user)
+                @forelse($recentUsers as $user)
                 <div class="py-3 flex justify-between items-center">
                     <div class="flex items-center">
                         <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold">
@@ -112,13 +112,13 @@
                 <a href="{{ route('admin.jobs') }}" class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">View All</a>
             </div>
             <div class="px-6 py-4 divide-y divide-gray-200 dark:divide-gray-700">
-                @forelse($recent_jobs as $job)
+                @forelse($recentJobs as $job)
                 <div class="py-3">
                     <div class="flex justify-between items-start">
                         <div>
                             <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $job->title }}</div>
                             <div class="text-sm text-gray-500 dark:text-gray-400">
-                                by {{ $job->user->name }}
+                                by {{ $job->client->name }}
                             </div>
                         </div>
                         <div class="flex flex-col items-end">
