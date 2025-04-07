@@ -1,51 +1,169 @@
-# Ajira Global - Laravel Version
+# Ajira Global - Freelancing Platform
 
-This is a job portal application built with Laravel, featuring:
+Ajira Global is a comprehensive job marketplace and freelancing platform built with Laravel, connecting job seekers with clients across various industries.
 
-## Features
+## 🚀 Features
 
-### User Authentication
-- Registration and Login for Job Seekers and Clients
-- Email verification
-- Profile management
+### User Authentication & Profiles
+- Secure registration and login for Job Seekers and Clients
+- Email verification and password reset functionality
+- Profile management with skill showcasing for job seekers
+- Company profiles for clients/employers
 
-### Job Seekers
-- Create and update professional profiles
-- Apply for jobs with cover letters
-- Track application status
-- Save favorite jobs
+### Job Seeker Features
+- Create and update professional profiles with portfolio items
+- Browse and search available jobs with advanced filtering
+- Apply for jobs with cover letters and work samples
+- Track application status in real-time
+- Save favorite jobs for later application
+- Task management for ongoing projects
+- Work log tracking for completed hours
+- Secure wallet for receiving payments with multiple withdrawal options
+- Comprehensive dashboard with analytics
 
-### Clients
-- Post job openings
-- Manage job applications
-- View and manage applicants
+### Client/Employer Features
+- Post detailed job openings with skill requirements
+- Manage job applications with screening tools
+- Review applicant profiles and portfolios
+- Track project progress and deliverables
+- Release payments for completed work
+- Rate and review job seekers
 
-### Jobs
-- Job listings with search and filter
-- Detailed job information
-- Application tracking
+### Jobs System
+- Detailed job listings with search, filter, and sort capabilities
+- Category-based browsing
+- Location-based job search
+- Application tracking for both clients and job seekers
+- Budget and deadline management
 
-## Tech Stack
-- Laravel 10
-- MySQL
-- Blade Templates with Laravel UI
-- Laravel Sanctum for API authentication
+### Payments & Wallet
+- Secure wallet system for storing earnings
+- Multiple withdrawal methods including:
+  - MPesa integration for Kenyan users
+  - PayPal for international transfers
+  - Bank transfers
+  - Mobile money options
+- Transaction history and reporting
 
-## Installation
+## 💻 Tech Stack
+- [Laravel 10](https://laravel.com/) - PHP Framework
+- MySQL - Database
+- [Blade Templates](https://laravel.com/docs/10.x/blade) with [Tailwind CSS](https://tailwindcss.com/) - Frontend
+- [Alpine.js](https://alpinejs.dev/) - JavaScript Framework
+- [Laravel Sanctum](https://laravel.com/docs/10.x/sanctum) - API Authentication
+
+## 🛠️ Installation
+
+### Prerequisites
+- PHP 8.1+
+- Composer
+- MySQL or MariaDB
+- Node.js and NPM (for frontend assets)
+
+### Setup Steps
 1. Clone this repository
-2. Run `composer install`
-3. Copy `.env.example` to `.env` and configure your database
-4. Run `php artisan key:generate`
-5. Run `php artisan migrate`
-6. Run `php artisan db:seed` (optional for demo data)
-7. Run `php artisan serve`
+   ```bash
+   git clone https://github.com/mutheejj/ajira.git
+   cd ajira-global
+   ```
 
-## Project Structure
+2. Install PHP dependencies
+   ```bash
+   composer install
+   ```
+
+3. Install and compile frontend assets
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+4. Environment Configuration
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+
+5. Configure your database connection in `.env` file
+   ```
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=ajira
+   DB_USERNAME=root
+   DB_PASSWORD=
+   ```
+
+6. For MPesa integration, add your credentials to the `.env` file
+   ```
+   MPESA_CONSUMER_KEY=your_consumer_key
+   MPESA_CONSUMER_SECRET=your_consumer_secret
+   MPESA_PASSKEY=your_passkey
+   MPESA_SHORTCODE=your_shortcode
+   ```
+
+7. Run database migrations and seed initial data
+   ```bash
+   php artisan migrate
+   php artisan db:seed
+   ```
+
+8. Start the local development server
+   ```bash
+   php artisan serve
+   ```
+
+9. Visit http://localhost:8000 in your browser
+
+## 🧱 Project Structure
+
 This Laravel project follows the MVC architecture:
-- Models: `app/Models/`
-- Controllers: `app/Http/Controllers/`
-- Views: `resources/views/`
-- Routes: `routes/web.php` and `routes/api.php`
+
+```
+app/
+├── Http/
+│   ├── Controllers/        # Application controllers
+│   ├── Middleware/         # Custom middleware
+│   └── Requests/           # Form requests for validation
+├── Models/                 # Database models
+├── Services/               # Business logic services
+resources/
+├── views/                  # Blade templates
+│   ├── layouts/            # Layout templates
+│   ├── jobs/               # Job-related views
+│   ├── applications/       # Application-related views
+│   └── components/         # Reusable UI components
+routes/
+├── web.php                 # Web routes
+└── api.php                 # API routes
+database/
+├── migrations/             # Database migrations
+└── seeders/                # Database seeders
+```
+
+## 🤝 Acknowledgments
+
+- [Laravel](https://laravel.com/) - The web framework used
+- [Tailwind CSS](https://tailwindcss.com/) - UI framework
+- [Alpine.js](https://alpinejs.dev/) - JavaScript framework for enhancing interactivity
+- [MPesa Daraja API](https://developer.safaricom.co.ke/) - For mobile money integration
+- [PayPal SDK](https://developer.paypal.com/) - For PayPal integration
+- Icons from [Heroicons](https://heroicons.com/)
+- UI components inspired by [Tailwind UI](https://tailwindui.com/)
+
+## 📝 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🔮 Roadmap
+
+- Mobile app development with Flutter
+- Real-time messaging system
+- Advanced reporting features
+- AI-powered job matching
+- Time tracking features for hourly contracts
+
+---
 
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
@@ -69,47 +187,3 @@ Laravel is a web application framework with expressive, elegant syntax. We belie
 - [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
 Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
-
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
