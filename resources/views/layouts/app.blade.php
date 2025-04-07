@@ -319,6 +319,75 @@
                 Your profile
             </a>
             
+            @if(auth()->user()->user_type === 'job-seeker')
+            <a href="{{ route('applications.my') }}" class="user-menu-item {{ request()->routeIs('applications.*') ? 'active' : '' }}">
+                <svg class="user-menu-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
+                </svg>
+                My Applications
+            </a>
+            
+            <a href="{{ route('saved-jobs.index') }}" class="user-menu-item {{ request()->routeIs('saved-jobs.*') ? 'active' : '' }}">
+                <svg class="user-menu-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"></path>
+                </svg>
+                Saved Jobs
+            </a>
+            
+            <a href="{{ route('jobs.index') }}" class="user-menu-item {{ request()->routeIs('jobs.*') ? 'active' : '' }}">
+                <svg class="user-menu-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
+                </svg>
+                Find Jobs
+            </a>
+            
+            <a href="{{ route('jobseeker.tasks') }}" class="user-menu-item {{ request()->routeIs('jobseeker.tasks') ? 'active' : '' }}">
+                <svg class="user-menu-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
+                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"></path>
+                </svg>
+                Active Tasks
+            </a>
+            
+            <a href="{{ route('jobseeker.worklog') }}" class="user-menu-item {{ request()->routeIs('jobseeker.worklog') ? 'active' : '' }}">
+                <svg class="user-menu-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+                </svg>
+                Work Log
+            </a>
+            @endif
+            
+            @if(auth()->user()->user_type === 'client')
+            <a href="{{ route('client.jobs') }}" class="user-menu-item {{ request()->routeIs('client.jobs*') ? 'active' : '' }}">
+                <svg class="user-menu-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                    <path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z"></path>
+                </svg>
+                My Jobs
+            </a>
+            
+            <a href="{{ route('client.jobs.create') }}" class="user-menu-item {{ request()->routeIs('client.jobs.create') ? 'active' : '' }}">
+                <svg class="user-menu-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                </svg>
+                Post a Job
+            </a>
+            
+            <a href="{{ route('client.applications') }}" class="user-menu-item {{ request()->routeIs('client.applications') ? 'active' : '' }}">
+                <svg class="user-menu-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
+                </svg>
+                Received Applications
+            </a>
+            
+            <a href="{{ route('client.active-contracts') }}" class="user-menu-item {{ request()->routeIs('client.active-contracts') ? 'active' : '' }}">
+                <svg class="user-menu-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
+                </svg>
+                Active Contracts
+            </a>
+            @endif
+            
             <a href="#" class="user-menu-item">
                 <svg class="user-menu-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                     <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path>
@@ -326,43 +395,21 @@
                 Stats and trends
             </a>
             
-            <a href="#" class="user-menu-item">
-                <svg class="user-menu-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-5V9a1 1 0 10-2 0v1H4a2 2 0 110-4h1.17C5.06 5.687 5 5.35 5 5zm4 1V5a1 1 0 10-1 1h1zm3 0a1 1 0 10-1-1v1h1z" clip-rule="evenodd"></path>
-                    <path d="M9 11H3v5a2 2 0 002 2h4v-7zM11 18h4a2 2 0 002-2v-5h-6v7z"></path>
-                </svg>
-                Membership plan
-            </a>
-            
-            <a href="#" class="user-menu-item">
-                <svg class="user-menu-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"></path>
-                </svg>
-                Connects
-            </a>
-            
-            <a href="#" class="user-menu-item">
-                <svg class="user-menu-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
-                </svg>
-                Apps and Offers
-            </a>
-            
             <div class="theme-toggle-btn">
                 <div class="flex items-center">
                     <svg class="user-menu-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                         <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
                     </svg>
-                    <span>Theme: Dark</span>
+                    <span id="theme-text">Theme: Dark</span>
                 </div>
                 <label class="theme-toggle-switch">
-                    <input type="checkbox" id="sidebar-theme-toggle" checked>
+                    <input type="checkbox" id="sidebar-theme-toggle">
                     <span class="theme-toggle-slider"></span>
                     <small class="sr-only">Toggle dark mode</small>
                 </label>
             </div>
             
-            <a href="#" class="user-menu-item">
+            <a href="{{ route('settings') }}" class="user-menu-item">
                 <svg class="user-menu-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                     <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
                 </svg>
@@ -438,112 +485,74 @@
                 
                 // Add event listener for the sidebar theme toggle
                 sidebarThemeToggle.addEventListener('change', function() {
-                    window.toggleTheme(this.checked ? 'dark' : 'light');
+                    toggleTheme(this.checked ? 'dark' : 'light');
                 });
             }
             
-            // Function to apply theme (used when toggling)
-            function applyTheme(theme) {
-                // Set theme attribute
-                htmlElement.setAttribute('data-theme', theme);
-                
-                // Persist to localStorage
-                localStorage.setItem('theme', theme);
-                
-                if (theme === 'dark') {
-                    htmlElement.classList.add('dark');
-                    body.classList.add('dark:bg-gray-900', 'dark:text-white');
-                    body.classList.remove('bg-gray-100', 'text-gray-900');
-                } else {
-                    htmlElement.classList.remove('dark');
-                    body.classList.remove('dark:bg-gray-900', 'dark:text-white');
-                    body.classList.add('bg-gray-100', 'text-gray-900');
+            // Update all theme toggles to reflect current state
+            const themeToggles = document.querySelectorAll('.theme-toggle-checkbox');
+            themeToggles.forEach(toggle => {
+                if (toggle.type === 'checkbox') {
+                    toggle.checked = currentTheme === 'dark';
                 }
                 
-                // Update sidebar theme toggle button text
-                const themeText = document.querySelector('.theme-toggle-btn span');
+                toggle.addEventListener('click', function() {
+                    const newTheme = htmlElement.classList.contains('dark') ? 'light' : 'dark';
+                    toggleTheme(newTheme);
+                });
+            });
+            
+            // Function to toggle the theme
+            window.toggleTheme = function(theme) {
+                const htmlElement = document.documentElement;
+                
+                // Apply theme class to html element
+                if (theme === 'dark') {
+                    htmlElement.classList.add('dark');
+                } else {
+                    htmlElement.classList.remove('dark');
+                }
+                
+                // Update theme in local storage
+                localStorage.setItem('theme', theme);
+                
+                // Update attribute for additional styling
+                htmlElement.setAttribute('data-theme', theme);
+                
+                // Update theme text in sidebar
+                const themeText = document.getElementById('theme-text');
                 if (themeText) {
                     themeText.textContent = `Theme: ${theme.charAt(0).toUpperCase() + theme.slice(1)}`;
                 }
-            }
-            
-            // Make theme toggle available globally
-            window.toggleTheme = function(newTheme) {
-                if (!newTheme) {
-                    // Cycle through themes if no specific theme is provided
-                    const currentTheme = htmlElement.getAttribute('data-theme');
-                    if (currentTheme === 'light') {
-                        newTheme = 'dark';
-                    } else if (currentTheme === 'dark') {
-                        newTheme = 'system';
-                        // Check system preference for immediate feedback
-                        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                        applyTheme(prefersDark ? 'dark' : 'light');
-                    } else {
-                        newTheme = 'light';
-                    }
-                }
                 
-                localStorage.setItem('theme', newTheme);
-                
-                if (newTheme !== 'system') {
-                    applyTheme(newTheme);
-                    
-                    // Update sidebar theme toggle if it exists
-                    const sidebarThemeToggle = document.getElementById('sidebar-theme-toggle');
-                    if (sidebarThemeToggle) {
-                        sidebarThemeToggle.checked = newTheme === 'dark';
+                // Update all toggle checkboxes to keep them in sync
+                const themeToggles = document.querySelectorAll('.theme-toggle-checkbox');
+                themeToggles.forEach(toggle => {
+                    if (toggle.type === 'checkbox') {
+                        toggle.checked = theme === 'dark';
                     }
-                }
+                });
             };
+
+            // Mobile menu toggle functionality
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            const mobileMenu = document.getElementById('mobile-menu');
             
-            // Connect desktop and mobile theme toggles to use the global function
-            const themeToggleBtn = document.getElementById('theme-toggle');
-            const themeToggleMobileBtn = document.getElementById('theme-toggle-mobile');
-            
-            // Use a timestamp to prevent multiple rapid clicks
-            let lastThemeToggleTime = 0;
-            const TOGGLE_COOLDOWN = 500; // Longer cooldown period in milliseconds
-            
-            function handleThemeToggle(e) {
-                const now = Date.now();
-                // Only process clicks if enough time has elapsed since last toggle
-                if (now - lastThemeToggleTime > TOGGLE_COOLDOWN) {
-                    lastThemeToggleTime = now;
-                    
-                    // Add a temporary "processing" class to visually indicate the button is disabled
-                    if (e.currentTarget) {
-                        e.currentTarget.classList.add('processing');
-                        setTimeout(() => {
-                            e.currentTarget.classList.remove('processing');
-                        }, TOGGLE_COOLDOWN);
-                    }
-                    
-                    // Toggle the theme
-                    window.toggleTheme();
-                }
-                
-                // Stop event propagation to prevent any other handlers from firing
-                e.stopPropagation();
-                return false;
+            if (mobileMenuToggle && mobileMenu) {
+                mobileMenuToggle.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                    this.setAttribute('aria-expanded', mobileMenu.classList.contains('hidden') ? 'false' : 'true');
+                });
             }
             
-            if (themeToggleBtn) {
-                themeToggleBtn.addEventListener('click', handleThemeToggle);
+            // Mobile theme toggle
+            const mobileThemeToggle = document.getElementById('theme-toggle-mobile');
+            if (mobileThemeToggle) {
+                mobileThemeToggle.addEventListener('click', function() {
+                    const newTheme = htmlElement.classList.contains('dark') ? 'light' : 'dark';
+                    toggleTheme(newTheme);
+                });
             }
-            
-            if (themeToggleMobileBtn) {
-                themeToggleMobileBtn.addEventListener('click', handleThemeToggle);
-            }
-            
-            // Listen for system theme changes
-            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-            mediaQuery.addEventListener('change', (e) => {
-                if (localStorage.getItem('theme') === 'system') {
-                    const systemTheme = e.matches ? 'dark' : 'light';
-                    applyTheme(systemTheme);
-                }
-            });
         });
     </script>
     @yield('scripts')

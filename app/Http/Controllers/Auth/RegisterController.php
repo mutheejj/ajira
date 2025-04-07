@@ -216,7 +216,7 @@ class RegisterController extends Controller
             return redirect()->route('client.dashboard')
                 ->with('success', 'Email verified successfully!');
         } else {
-            return redirect()->route('job-seeker.dashboard')
+            return redirect()->route('jobseeker.dashboard')
                 ->with('success', 'Email verified successfully!');
         }
     }

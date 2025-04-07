@@ -123,7 +123,7 @@ class HomeController extends Controller
         if ($user->user_type === 'client') {
             return redirect()->route('client.dashboard');
         } elseif ($user->user_type === 'job-seeker') {
-            return redirect()->route('job-seeker.dashboard');
+            return redirect()->route('jobseeker.dashboard');
         } elseif ($user->isAdmin()) {
             return redirect()->route('admin.dashboard');
         }
@@ -146,7 +146,7 @@ class HomeController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function jobSeekerDashboard()
+    public function jobseekerDashboard()
     {
         return view('job-seeker.dashboard');
     }

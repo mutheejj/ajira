@@ -121,7 +121,7 @@
 
         <!-- Copyright and Legal Links -->
         <div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700 text-center">
-            <p class="text-gray-600 dark:text-gray-400 mb-4">&copy; 2015 - {{ date('Y') }} Ajira® Global Inc.</p>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">&copy; 2025 Ajira® Global Inc.</p>
             <div class="flex flex-wrap justify-center gap-x-6 gap-y-2">
                 <a href="{{ route('terms') }}" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm">
                     Terms of Service

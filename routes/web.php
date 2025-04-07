@@ -18,6 +18,9 @@ use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\TestEmailController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\JobSeekerController;
+use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\WalletController;
 
 /*
 |--------------------------------------------------------------------------
@@ -148,6 +151,18 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/saved-jobs', [SavedJobController::class, 'index'])->name('saved-jobs.index');
         Route::post('/jobs/{jobId}/save', [SavedJobController::class, 'store'])->name('saved-jobs.store');
         Route::delete('/saved-jobs/{id}', [SavedJobController::class, 'destroy'])->name('saved-jobs.destroy');
+        
+        // New Job Seeker routes
+        Route::get('/jobseeker/tasks', [JobSeekerController::class, 'activeTasks'])->name('jobseeker.tasks');
+        Route::get('/jobseeker/worklog', [JobSeekerController::class, 'workLog'])->name('jobseeker.worklog');
+        Route::get('/jobseeker/contracts', [JobSeekerController::class, 'contracts'])->name('jobseeker.contracts');
+        Route::get('/jobseeker/earnings', [JobSeekerController::class, 'earnings'])->name('jobseeker.earnings');
+        Route::get('/jobseeker/portfolio', [JobSeekerController::class, 'portfolio'])->name('jobseeker.portfolio');
+        Route::get('/jobseeker/reviews', [JobSeekerController::class, 'reviews'])->name('jobseeker.reviews');
+        
+        // Workspace routes
+        Route::get('/jobseeker/workspace/{taskId}', [JobSeekerController::class, 'workspace'])->name('jobseeker.workspace');
+        Route::post('/jobseeker/workspace/{taskId}/submit', [JobSeekerController::class, 'submitWork'])->name('jobseeker.submit-work');
     });
     
     // Admin dashboard
@@ -159,6 +174,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/jobs/{jobId}/apply', [App\Http\Controllers\ApplicationController::class, 'create'])->name('applications.create');
     Route::post('/jobs/{jobId}/applications', [App\Http\Controllers\ApplicationController::class, 'store'])->name('applications.store');
     Route::get('/applications/{id}', [App\Http\Controllers\ApplicationController::class, 'show'])->name('applications.show');
+    Route::get('/applications/{id}/success', [App\Http\Controllers\ApplicationController::class, 'success'])->name('applications.success');
     Route::patch('/applications/{id}/status', [App\Http\Controllers\ApplicationController::class, 'updateStatus'])->name('applications.update-status');
     Route::patch('/applications/{id}/withdraw', [App\Http\Controllers\ApplicationController::class, 'withdraw'])->name('applications.withdraw');
     Route::get('/jobs/{jobId}/applications', [App\Http\Controllers\ApplicationController::class, 'listByJob'])->name('applications.list');
@@ -190,6 +206,12 @@ Route::middleware(['auth', 'client'])->prefix('client')->name('client.')->group(
     Route::patch('/profile', [ClientController::class, 'updateProfile'])->name('update-profile');
     Route::get('/billing', [ClientController::class, 'billing'])->name('billing');
     Route::get('/email-verification', [ClientController::class, 'verifyEmail'])->name('email-verification');
+    
+    // New Client routes
+    Route::get('/applications', [ClientController::class, 'applications'])->name('applications');
+    Route::get('/active-contracts', [ClientController::class, 'activeContracts'])->name('active-contracts');
+    Route::get('/payments', [ClientController::class, 'payments'])->name('payments');
+    Route::get('/reports', [ClientController::class, 'reports'])->name('reports');
 });
 
 // Test Email Routes
@@ -225,4 +247,16 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Settings
     Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
     Route::post('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
+});
+
+// Settings route
+Route::middleware(['auth'])->group(function () {
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+    Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
+    
+    // Wallet routes for all users
+    Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
+    Route::get('/wallet/transactions', [WalletController::class, 'transactions'])->name('wallet.transactions');
+    Route::post('/wallet/deposit', [WalletController::class, 'deposit'])->name('wallet.deposit');
+    Route::post('/wallet/withdraw', [WalletController::class, 'withdraw'])->name('wallet.withdraw');
 });

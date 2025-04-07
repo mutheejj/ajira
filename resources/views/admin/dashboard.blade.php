@@ -197,6 +197,7 @@
                         </span>
                         <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $user->created_at->diffForHumans() }}</span>
                     </div>
+
                 </div>
                 @empty
                 <div class="py-3 text-center text-gray-500 dark:text-gray-400">

@@ -8,6 +8,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Mail\ApplicationSubmittedMail;
+use App\Mail\ApplicationStatusChangedMail;
+use Illuminate\Support\Facades\Mail;
 
 class ApplicationController extends Controller
 {
@@ -92,11 +95,15 @@ class ApplicationController extends Controller
         $application->status = 'pending';
         $application->save();
         
-        // Notify client about the new application (to be implemented)
-        // Notification::send($jobPost->client, new NewApplicationNotification($application));
+        // Send email notification to client
+        try {
+            Mail::to($jobPost->client->email)->send(new ApplicationSubmittedMail($application));
+        } catch (\Exception $e) {
+            // Log email error but continue with the process
+            \Log::error('Failed to send application notification email: ' . $e->getMessage());
+        }
         
-        return redirect()->route('jobs.show', $jobId)
-            ->with('success', 'Your application has been submitted successfully.');
+        return view('applications.success', compact('application', 'jobPost'));
     }
     
     /**
@@ -143,6 +150,7 @@ class ApplicationController extends Controller
             'feedback' => 'nullable|string|max:1000',
         ]);
         
+        $oldStatus = $application->status;
         $application->status = $request->status;
         
         if ($request->has('feedback')) {
@@ -151,10 +159,13 @@ class ApplicationController extends Controller
         
         $application->save();
         
-        // If accepted, notify the freelancer (to be implemented)
-        // if ($request->status === 'accepted') {
-        //     Notification::send($application->user, new ApplicationAcceptedNotification($application));
-        // }
+        // Send status change email to the applicant
+        try {
+            Mail::to($application->user->email)->send(new ApplicationStatusChangedMail($application, $oldStatus));
+        } catch (\Exception $e) {
+            // Log email error but continue with the process
+            \Log::error('Failed to send application status change email: ' . $e->getMessage());
+        }
         
         return redirect()->route('applications.show', $id)
             ->with('success', 'Application status updated successfully.');
@@ -182,10 +193,19 @@ class ApplicationController extends Controller
                 ->with('error', 'You can only withdraw pending applications.');
         }
         
+        $oldStatus = $application->status;
         $application->status = 'withdrawn';
         $application->save();
         
-        return redirect()->route('dashboard')
+        // Send status change email to the applicant
+        try {
+            Mail::to($application->user->email)->send(new ApplicationStatusChangedMail($application, $oldStatus));
+        } catch (\Exception $e) {
+            // Log email error but continue with the process
+            \Log::error('Failed to send application withdrawal email: ' . $e->getMessage());
+        }
+        
+        return redirect()->route('applications.my')
             ->with('success', 'Your application has been withdrawn successfully.');
     }
     
@@ -252,5 +272,26 @@ class ApplicationController extends Controller
         }
         
         return Storage::disk('public')->download($application->attachment);
+    }
+
+    /**
+     * Display a success page after application submission.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function success($id)
+    {
+        $application = Application::with(['jobPost', 'user'])->findOrFail($id);
+        
+        // Check if user is authorized to view this success page
+        if (Auth::id() !== $application->user_id) {
+            return redirect()->route('dashboard')
+                ->with('error', 'You are not authorized to view this page.');
+        }
+        
+        $jobPost = $application->jobPost;
+        
+        return view('applications.success', compact('application', 'jobPost'));
     }
 } 

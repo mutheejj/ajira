@@ -1,0 +1,103 @@
+Symfony
+ \ 
+Component
+ \ 
+Mailer
+ \ 
+Exception
+ \ 
+TransportException
+PHP 8.0.30
+9.52.20
+Connection could not be established with host "mailpit:1025": stream_socket_client(): php_network_getaddresses: getaddrinfo failed: No such host is known.
+
+Expand vendor frames
+1 vendor frame
+.unknown
+0
+stream_socket_client
+20 vendor frames
+App
+ \ 
+Http
+ \ 
+Controllers
+ \ 
+Auth
+ \ 
+AuthController
+ 
+: 93
+register
+6 vendor frames
+App
+ \ 
+Http
+ \ 
+Middleware
+ \ 
+RedirectIfAuthenticated
+ 
+: 30
+handle
+38 vendor frames
+C:\Users\HomePC\project\ajira\public\index
+.php
+ 
+: 52
+require_once
+1 vendor frame
+C:\Users\HomePC\project\ajira\app\Http\Controllers\Auth\AuthController
+.php
+ 
+: 93
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                $skillsArray = array_map('trim', explode(',', $request->skills));
+
+                $skills = json_encode($skillsArray);
+
+            }
+
+
+
+            $userData = array_merge($userData, [
+
+                'profession' => $request->profession ?? null,
+
+                'experience' => $request->experience ?? null,
+
+                'skills' => $skills,
+
+                'bio' => $request->bio ?? null,
+
+            ]);

@@ -132,7 +132,7 @@ class AuthController extends Controller
             if ($user->user_type === 'client') {
                 return redirect()->intended(route('client.dashboard'));
             } elseif ($user->user_type === 'job-seeker') {
-                return redirect()->intended(route('job-seeker.dashboard'));
+                return redirect()->intended(route('jobseeker.dashboard'));
             } elseif ($user->isAdmin()) {
                 return redirect()->intended(route('admin.dashboard'));
             }
@@ -178,7 +178,7 @@ class AuthController extends Controller
         if ($user->user_type === 'client') {
             return redirect()->route('client.dashboard')->with('success', 'Email verified successfully!');
         } else {
-            return redirect()->route('job-seeker.dashboard')->with('success', 'Email verified successfully!');
+            return redirect()->route('jobseeker.dashboard')->with('success', 'Email verified successfully!');
         }
     }
 
