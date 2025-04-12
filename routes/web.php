@@ -21,6 +21,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\JobSeekerController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\WalletController;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -260,3 +261,36 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/wallet/deposit', [WalletController::class, 'deposit'])->name('wallet.deposit');
     Route::post('/wallet/withdraw', [WalletController::class, 'withdraw'])->name('wallet.withdraw');
 });
+
+// Test route to check user type
+Route::get('/test-user-type', function() {
+    if (Auth::check()) {
+        $user = Auth::user();
+        return [
+            'user_id' => $user->id,
+            'name' => $user->name,
+            'user_type' => $user->user_type,
+            'is_job_seeker' => $user->isJobSeeker(),
+            'is_client' => $user->isClient(),
+            'is_admin' => $user->isAdmin(),
+        ];
+    }
+    return ['message' => 'Not authenticated'];
+})->middleware('auth');
+
+// Test route to set current user as job seeker
+Route::get('/set-job-seeker', function() {
+    if (Auth::check()) {
+        $user = Auth::user();
+        $user->user_type = 'job-seeker';
+        $user->save();
+        return [
+            'message' => 'User set as job seeker',
+            'user_id' => $user->id,
+            'name' => $user->name,
+            'user_type' => $user->user_type,
+            'is_job_seeker' => $user->isJobSeeker(),
+        ];
+    }
+    return ['message' => 'Not authenticated'];
+})->middleware('auth');
