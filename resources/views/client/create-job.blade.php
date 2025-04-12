@@ -69,11 +69,11 @@
                 <!-- Job Description -->
                 <div class="col-span-2">
                     <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Description*</label>
-                    <textarea id="description" name="description" rows="6" required placeholder="Provide a detailed description of the job requirements, responsibilities, and any specific skills needed..." class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{{ old('description') }}</textarea>
+                    <textarea id="description" name="description" rows="6" required placeholder="Provide a detailed description of the job requirements, responsibilities, and any specific skills needed... (minimum 20 characters)" class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">{{ old('description') }}</textarea>
                     @error('description')
                     <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
-                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Tip: Be specific about deliverables, timeline, and required experience to attract the right candidates.</p>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Tip: Provide a detailed description (minimum 20 characters). Be specific about deliverables, timeline, and required experience to attract the right candidates.</p>
                     <input type="hidden" id="requirements" name="requirements" value="{{ old('description') }}">
                 </div>
                 
@@ -380,4 +380,4 @@
         }
     });
 </script>
-@endsection 
+@endsection

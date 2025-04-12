@@ -4,7 +4,7 @@
             <!-- Logo -->
             <div class="flex items-center space-x-2">
                 <a href="{{ route('home') }}" class="flex items-center">
-                    <img src="{{ asset('images/logo.jpg') }}" alt="Ajira Global Logo" class="h-10 w-auto">
+                    <img src="{{ asset('images/logo.jpg') }}" alt="Ajira Global Logo" class="h-10 w-10 object-cover rounded-full">
                     <span class="text-xl font-bold ml-2 text-gray-900 dark:text-white">AjiraGlobal</span>
                 </a>
             </div>
@@ -113,7 +113,7 @@
                             x-transition:leave-end="transform opacity-0 scale-95"
                         >
                             <a 
-                                href="{{ auth()->user()->is_job_seeker ? route('jobseeker.dashboard') : route('client.dashboard') }}" 
+                                href="{{ auth()->user()->isJobSeeker() ? route('jobseeker.dashboard') : route('client.dashboard') }}" 
                                 class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                             >
                                 Dashboard
@@ -183,7 +183,7 @@
                 <a href="{{ route('freelancer.index') }}" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Find Work</a>
                 
                 @auth
-                    @if(auth()->user()->is_job_seeker)
+                    @if(auth()->user()->isJobSeeker())
                         <a href="{{ route('jobseeker.dashboard') }}" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Dashboard</a>
                         <a href="{{ route('applications.index') }}" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">My Applications</a>
                         <a href="{{ route('saved-jobs.index') }}" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Saved Jobs</a>
@@ -249,4 +249,4 @@
             window.toggleTheme(newTheme);
         };
     });
-</script> 
+</script>

@@ -77,44 +77,11 @@
                         </div>
                         
                         <div class="flex justify-between items-center mt-6">
-                            <!-- Apply Button for Job Seekers -->
-                            @auth
-                                @if(Auth::user()->user_type === 'job_seeker')
-                                    @php
-                                        $hasApplied = \App\Models\Application::where('job_post_id', $jobPost->id)
-                                            ->where('user_id', Auth::id())
-                                            ->exists();
-                                        $isOwnPost = Auth::id() === $jobPost->client_id;
-                                    @endphp
-                                    
-                                    @if($hasApplied)
-                                        <button disabled 
-                                            class="px-6 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-md cursor-not-allowed">
-                                            Already Applied
-                                        </button>
-                                    @elseif($isOwnPost)
-                                        <button disabled 
-                                            class="px-6 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-md cursor-not-allowed">
-                                            Cannot Apply to Own Job
-                                        </button>
-                                    @else
-                                        <a href="{{ route('applications.create', $jobPost->id) }}" 
-                                            class="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                                            Apply Now
-                                        </a>
-                                    @endif
-                                @elseif(Auth::user()->user_type === 'client' && Auth::id() === $jobPost->client_id)
-                                    <a href="{{ route('applications.list', $jobPost->id) }}" 
-                                        class="px-6 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
-                                        View Applications
-                                    </a>
-                                @endif
-                            @else
-                                <a href="{{ route('login') }}" 
-                                    class="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                                    Login to Apply
-                                </a>
-                            @endauth
+                            <!-- Apply Button - Always Visible -->
+                            <a href="{{ route('applications.create', $jobPost->id) }}" 
+                                class="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                Apply Now
+                            </a>
                             
                             <!-- Save Job / Share Buttons -->
                             <div class="flex space-x-2">

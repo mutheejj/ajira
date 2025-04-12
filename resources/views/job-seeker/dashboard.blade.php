@@ -85,7 +85,8 @@
                         </div>
                         <div class="ml-4">
                             <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Applications</h2>
-                            <p class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{{ rand(1, 10) }}</p>
+                            <p class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{{ $applicationStats['total'] }}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ $applicationStats['in_progress'] }} in progress</p>
                         </div>
                     </div>
                 </div>
@@ -99,8 +100,9 @@
                             </svg>
                         </div>
                         <div class="ml-4">
-                            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Profile Views</h2>
-                            <p class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{{ rand(10, 100) }}</p>
+                            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Active Tasks</h2>
+                            <p class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{{ $tasks->count() }}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ $tasks->where('status', 'in-progress')->count() }} in progress</p>
                         </div>
                     </div>
                 </div>
@@ -109,15 +111,91 @@
                     <div class="flex items-center">
                         <div class="p-3 rounded-full bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-200">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
                         <div class="ml-4">
-                            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Saved Jobs</h2>
-                            <p class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{{ rand(1, 15) }}</p>
+                            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Earnings</h2>
+                            <p class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">${{ number_format($earnings['total'], 2) }}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">${{ number_format($earnings['pending'], 2) }} pending</p>
                         </div>
                     </div>
                 </div>
+            </div>
+            
+            <!-- Recent Activity -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Recent Activity</h2>
+                
+                @if($workLogs->isEmpty())
+                    <p class="text-gray-500 dark:text-gray-400">No recent activity</p>
+                @else
+                    <div class="space-y-4">
+                        @foreach($workLogs as $log)
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <div class="p-2 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                        {{ $log->task->title }}
+                                    </p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                                        @if(isset($log->task) && isset($log->task->contract) && isset($log->task->contract->job) && isset($log->task->contract->job->client))
+                                            {{ $log->task->contract->job->client->name }}
+                                        @else
+                                            Unknown Client
+                                        @endif
+                                        • {{ $log->created_at->diffForHumans() }}
+                                    </p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+            
+            <!-- Active Tasks -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mt-6">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Active Tasks</h2>
+                
+                @if($tasks->isEmpty())
+                    <p class="text-gray-500 dark:text-gray-400">No active tasks</p>
+                @else
+                    <div class="space-y-4">
+                        @foreach($tasks->take(5) as $task)
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-sm font-medium text-gray-900 dark:text-white">{{ $task['title'] }}</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ $task['client'] }}</p>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="px-2 py-1 text-xs font-medium rounded-full 
+                                        @if($task['status'] === 'completed') bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                                        @elseif($task['status'] === 'in-progress') bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
+                                        @else bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 @endif">
+                                        {{ ucfirst($task['status']) }}
+                                    </span>
+                                    <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">
+                                        Due {{ \Carbon\Carbon::parse($task['due_date'])->format('M d, Y') }}
+                                    </span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    
+                    @if($tasks->count() > 5)
+                        <div class="mt-4">
+                            <a href="{{ route('jobseeker.tasks') }}" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500">
+                                View all tasks →
+                            </a>
+                        </div>
+                    @endif
+                @endif
             </div>
             
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
