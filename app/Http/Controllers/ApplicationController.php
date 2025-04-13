@@ -50,12 +50,6 @@ class ApplicationController extends Controller
                 ->with('error', 'You cannot apply for your own job posting.');
         }
         
-        // Check if user is a job seeker
-        if (Auth::user()->user_type !== 'job_seeker') {
-            return redirect()->route('jobs.show', $jobId)
-                ->with('error', 'Only job seekers can apply for jobs.');
-        }
-        
         return view('applications.create', compact('jobPost'));
     }
 

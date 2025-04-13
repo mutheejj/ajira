@@ -1,4 +1,4 @@
-# Ajira Global - Freelancing Platform
+# Ajira Global 
 
 Ajira Global is a comprehensive job marketplace and freelancing platform built with Laravel, connecting job seekers with clients across various industries.
 

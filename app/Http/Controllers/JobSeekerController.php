@@ -24,6 +24,70 @@ class JobSeekerController extends Controller
     }
     
     /**
+     * Display the job seeker dashboard.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function dashboard()
+    {
+        $user = Auth::user();
+        
+        // Get application statistics
+        $applications = JobApplication::where('job_seeker_id', $user->id);
+        $applicationStats = [
+            'total' => $applications->count(),
+            'in_progress' => $applications->whereIn('status', ['pending', 'reviewing', 'interviewed'])->count(),
+            'accepted' => $applications->where('status', 'accepted')->count(),
+            'rejected' => $applications->where('status', 'rejected')->count(),
+        ];
+        
+        // Get active tasks
+        $contracts = Contract::where('job_seeker_id', $user->id)
+            ->with(['job', 'job.client', 'tasks'])
+            ->get();
+            
+        $tasks = collect();
+        foreach ($contracts as $contract) {
+            $contractTasks = $contract->tasks->map(function($task) use ($contract) {
+                return [
+                    'id' => $task->id,
+                    'title' => $task->title,
+                    'client' => $contract->job->client->name,
+                    'status' => $task->status,
+                    'priority' => $task->priority,
+                    'due_date' => $task->due_date,
+                    'progress' => $task->progress
+                ];
+            });
+            $tasks = $tasks->concat($contractTasks);
+        }
+        
+        // Get recent work logs
+        $workLogs = WorkLog::where('job_seeker_id', $user->id)
+            ->with(['task', 'task.contract.job.client'])
+            ->latest()
+            ->take(5)
+            ->get();
+            
+        // Get earnings statistics
+        $earnings = [
+            'total' => Contract::where('job_seeker_id', $user->id)
+                ->where('status', 'completed')
+                ->sum('amount'),
+            'pending' => Contract::where('job_seeker_id', $user->id)
+                ->where('status', 'in_progress')
+                ->sum('amount'),
+        ];
+        
+        return view('job-seeker.dashboard', compact(
+            'applicationStats',
+            'tasks',
+            'workLogs',
+            'earnings'
+        ));
+    }
+    
+    /**
      * Display job seeker's active tasks.
      *
      * @return \Illuminate\View\View

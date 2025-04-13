@@ -148,7 +148,73 @@ class HomeController extends Controller
      */
     public function jobseekerDashboard()
     {
-        return view('job-seeker.dashboard');
+        $user = Auth::user();
+        
+        // Get application statistics
+        $applications = \App\Models\JobApplication::where('job_seeker_id', $user->id);
+        $applicationStats = [
+            'total' => $applications->count(),
+            'in_progress' => $applications->whereIn('status', ['pending', 'reviewing', 'interviewed'])->count(),
+            'accepted' => $applications->where('status', 'accepted')->count(),
+            'rejected' => $applications->where('status', 'rejected')->count(),
+        ];
+        
+        // Initialize empty collections for tasks and work logs
+        $tasks = collect();
+        $workLogs = collect();
+        $earnings = [
+            'total' => 0,
+            'pending' => 0,
+        ];
+        
+        // Check if the Contract model exists
+        if (class_exists(\App\Models\Contract::class)) {
+            // Get active tasks
+            $contracts = \App\Models\Contract::where('job_seeker_id', $user->id)
+                ->with(['job', 'job.client', 'tasks'])
+                ->get();
+                
+            foreach ($contracts as $contract) {
+                $contractTasks = $contract->tasks->map(function($task) use ($contract) {
+                    return [
+                        'id' => $task->id,
+                        'title' => $task->title,
+                        'client' => $contract->job->client->name,
+                        'status' => $task->status,
+                        'priority' => $task->priority,
+                        'due_date' => $task->due_date,
+                        'progress' => $task->progress
+                    ];
+                });
+                $tasks = $tasks->concat($contractTasks);
+            }
+            
+            // Get recent work logs
+            if (class_exists(\App\Models\WorkLog::class)) {
+                $workLogs = \App\Models\WorkLog::where('job_seeker_id', $user->id)
+                    ->with(['task', 'task.contract.job.client'])
+                    ->latest()
+                    ->take(5)
+                    ->get();
+            }
+                
+            // Get earnings statistics
+            $earnings = [
+                'total' => \App\Models\Contract::where('job_seeker_id', $user->id)
+                    ->where('status', 'completed')
+                    ->sum('amount'),
+                'pending' => \App\Models\Contract::where('job_seeker_id', $user->id)
+                    ->where('status', 'in_progress')
+                    ->sum('amount'),
+            ];
+        }
+        
+        return view('job-seeker.dashboard', compact(
+            'applicationStats',
+            'tasks',
+            'workLogs',
+            'earnings'
+        ));
     }
 
     /**

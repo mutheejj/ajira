@@ -37,8 +37,22 @@ class JobApplicationController extends Controller
             ->where('job_seeker_id', Auth::id())
             ->latest('applied_date')
             ->paginate(10);
+            
+        // Calculate statistics
+        $statistics = [
+            'total' => JobApplication::where('job_seeker_id', Auth::id())->count(),
+            'in_progress' => JobApplication::where('job_seeker_id', Auth::id())
+                ->whereIn('status', ['pending', 'reviewing', 'interviewed'])
+                ->count(),
+            'accepted' => JobApplication::where('job_seeker_id', Auth::id())
+                ->where('status', 'accepted')
+                ->count(),
+            'rejected' => JobApplication::where('job_seeker_id', Auth::id())
+                ->where('status', 'rejected')
+                ->count(),
+        ];
 
-        return view('applications.index', compact('applications'));
+        return view('applications.index', compact('applications', 'statistics'));
     }
 
     /**

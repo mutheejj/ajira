@@ -56,7 +56,7 @@ class WalletController extends Controller
             
         // Get user's role for conditional display
         $isClient = $user->is_client;
-        $isJobSeeker = $user->is_job_seeker;
+        $isJobSeeker = $user->isJobSeeker();
         $isAdmin = $user->is_admin;
         
         return view('wallet.index', compact(
