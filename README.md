@@ -153,7 +153,9 @@ database/
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is proprietary software. Unauthorized copying, distribution, or use of this software, via any medium is strictly prohibited.
+
+Copyright © 2025 Ajira Global. All rights reserved.
 
 ## 🔮 Roadmap
 
