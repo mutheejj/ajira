@@ -151,13 +151,31 @@ class HomeController extends Controller
         $user = Auth::user();
         
         // Get application statistics
-        $applications = \App\Models\JobApplication::where('job_seeker_id', $user->id);
+        $applications = \App\Models\Application::where('user_id', $user->id);
         $applicationStats = [
             'total' => $applications->count(),
-            'in_progress' => $applications->whereIn('status', ['pending', 'reviewing', 'interviewed'])->count(),
-            'accepted' => $applications->where('status', 'accepted')->count(),
+            'in_progress' => $applications->whereIn('status', ['pending', 'accepted'])->count(), // Simplified for example
+            'withdrawn' => $applications->where('status', 'withdrawn')->count(),
             'rejected' => $applications->where('status', 'rejected')->count(),
         ];
+        
+        // Get Recent Applications (Limit 3-5)
+        $recentApplications = \App\Models\Application::where('user_id', $user->id)
+            ->with(['jobPost.client']) // Eager load Job Post and Client
+            ->latest()
+            ->take(3) // Fetch latest 3 applications
+            ->get();
+            
+        // Get IDs of jobs user has applied to
+        $appliedJobIds = \App\Models\Application::where('user_id', $user->id)->pluck('job_post_id')->toArray();
+        
+        // Get Recommended Jobs (Recent active jobs not applied to, Limit 3-5)
+        $recommendedJobs = JobPost::where('status', 'active')
+            ->whereNotIn('id', $appliedJobIds) // Exclude jobs already applied to
+            ->with('client') // Eager load client
+            ->latest()
+            ->take(3) // Fetch latest 3 recommended jobs
+            ->get();
         
         // Initialize empty collections for tasks and work logs
         $tasks = collect();
@@ -171,7 +189,7 @@ class HomeController extends Controller
         if (class_exists(\App\Models\Contract::class)) {
             // Get active tasks
             $contracts = \App\Models\Contract::where('job_seeker_id', $user->id)
-                ->with(['job', 'job.client', 'tasks'])
+                ->with(['jobPost', 'jobPost.client', 'tasks']) // Use jobPost relation
                 ->get();
                 
             foreach ($contracts as $contract) {
@@ -179,7 +197,7 @@ class HomeController extends Controller
                     return [
                         'id' => $task->id,
                         'title' => $task->title,
-                        'client' => $contract->job->client->name,
+                        'client' => $contract->jobPost->client->name, // Access client via jobPost
                         'status' => $task->status,
                         'priority' => $task->priority,
                         'due_date' => $task->due_date,
@@ -191,8 +209,8 @@ class HomeController extends Controller
             
             // Get recent work logs
             if (class_exists(\App\Models\WorkLog::class)) {
-                $workLogs = \App\Models\WorkLog::where('job_seeker_id', $user->id)
-                    ->with(['task', 'task.contract.job.client'])
+                $workLogs = \App\Models\WorkLog::where('job_seeker_id', $user->id) // Use correct column name
+                    ->with(['task', 'task.contract.jobPost.client']) // Adjust relation path
                     ->latest()
                     ->take(5)
                     ->get();
@@ -202,15 +220,17 @@ class HomeController extends Controller
             $earnings = [
                 'total' => \App\Models\Contract::where('job_seeker_id', $user->id)
                     ->where('status', 'completed')
-                    ->sum('amount'),
+                    ->sum('amount'), // Assuming amount is on Contract model
                 'pending' => \App\Models\Contract::where('job_seeker_id', $user->id)
-                    ->where('status', 'in_progress')
+                    ->whereIn('status', ['in_progress', 'pending']) // Example statuses
                     ->sum('amount'),
             ];
         }
         
         return view('job-seeker.dashboard', compact(
             'applicationStats',
+            'recentApplications', // Pass recent applications to view
+            'recommendedJobs', // Pass recommended jobs to view
             'tasks',
             'workLogs',
             'earnings'
@@ -225,5 +245,34 @@ class HomeController extends Controller
     public function adminDashboard()
     {
         return view('admin.dashboard');
+    }
+
+    /**
+     * Show the platform statistics page.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function stats()
+    {
+        $stats = [
+            'total_users' => User::count(),
+            'total_clients' => User::where('user_type', 'client')->count(),
+            'total_job_seekers' => User::where('user_type', 'job-seeker')->count(),
+            'total_jobs' => JobPost::count(),
+            'active_jobs' => JobPost::where('status', 'active')->count(),
+            'completed_jobs' => JobPost::where('status', 'completed')->count(), // Assuming 'completed' status exists
+            'total_applications' => \App\Models\Application::count(),
+            'total_contracts' => 0, // Placeholder - Add if Contract model exists
+            'total_earnings' => 0, // Placeholder - Add if payment tracking exists
+        ];
+        
+        if (class_exists(\App\Models\Contract::class)) {
+            $stats['total_contracts'] = \App\Models\Contract::count();
+            // You might want more specific contract stats (e.g., active, completed)
+        }
+        
+        // Add more stats as needed...
+        
+        return view('stats.index', compact('stats'));
     }
 } 

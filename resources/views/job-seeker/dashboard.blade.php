@@ -203,35 +203,37 @@
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Applications</h2>
                     
                     <div class="space-y-4">
-                        <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                            <div class="flex justify-between">
-                                <div>
-                                    <h3 class="font-medium text-gray-900 dark:text-white">Senior Web Developer</h3>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">TechCorp LLC</p>
+                        @forelse($recentApplications as $application)
+                            <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h3 class="font-medium text-gray-900 dark:text-white">
+                                            <a href="{{ route('jobs.show', $application->jobPost->id) }}" class="hover:text-blue-600 dark:hover:text-blue-400">
+                                                {{ $application->jobPost->title }}
+                                            </a>
+                                        </h3>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                                            {{ $application->jobPost->client->name ?? 'Unknown Client' }}
+                                        </p>
+                                    </div>
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        @if($application->status === 'pending') bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
+                                        @elseif($application->status === 'accepted') bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                                        @elseif($application->status === 'rejected') bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200
+                                        @elseif($application->status === 'withdrawn') bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300
+                                        @else bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 @endif">
+                                        {{ ucfirst($application->status) }}
+                                    </span>
                                 </div>
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                                    Under Review
-                                </span>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Applied {{ $application->created_at->diffForHumans() }}</p>
                             </div>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Applied 3 days ago</p>
-                        </div>
-                        
-                        <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                            <div class="flex justify-between">
-                                <div>
-                                    <h3 class="font-medium text-gray-900 dark:text-white">UX Designer</h3>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">CreativeMinds Agency</p>
-                                </div>
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                    Interview
-                                </span>
-                            </div>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Applied 1 week ago</p>
-                        </div>
+                        @empty
+                            <p class="text-gray-500 dark:text-gray-400">No recent applications found.</p>
+                        @endforelse
                     </div>
                     
                     <div class="mt-4 text-right">
-                        <a href="{{ route('applications.index') }}" class="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                        <a href="{{ route('applications.my') }}" class="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
                             View all applications →
                         </a>
                     </div>
@@ -241,42 +243,43 @@
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recommended Jobs</h2>
                     
                     <div class="space-y-4">
-                        <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                            <h3 class="font-medium text-gray-900 dark:text-white">Frontend Developer</h3>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">WebTech Solutions</p>
-                            <div class="flex items-center mt-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 dark:text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-                                </svg>
-                                <span class="text-xs text-gray-500 dark:text-gray-400 ml-1">Remote</span>
-                                <span class="mx-2 text-gray-500 dark:text-gray-400">•</span>
-                                <span class="text-xs text-gray-500 dark:text-gray-400">$70K - $90K</span>
+                        @forelse($recommendedJobs as $job)
+                            <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                                <h3 class="font-medium text-gray-900 dark:text-white">
+                                    <a href="{{ route('jobs.show', $job->id) }}" class="hover:text-blue-600 dark:hover:text-blue-400">
+                                        {{ $job->title }}
+                                    </a>
+                                </h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    {{ $job->client->name ?? 'Unknown Client' }}
+                                </p>
+                                <div class="flex items-center mt-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 dark:text-gray-400 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">
+                                        {{ $job->location_type == 'remote' ? 'Remote' : $job->location ?? 'Not specified' }}
+                                    </span>
+                                    <span class="mx-2 text-gray-400 dark:text-gray-500">•</span>
+                                    <span class="text-sm text-gray-600 dark:text-gray-300 font-medium">
+                                        {{ $job->currency }} {{ number_format($job->budget, 0) }}
+                                        @if($job->rate_type == 'hourly') /hr @endif
+                                    </span>
+                                </div>
+                                <div class="mt-3">
+                                    <a href="{{ route('jobs.show', $job->id) }}" class="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                                        View Job →
+                                    </a>
+                                </div>
                             </div>
-                            <div class="mt-3">
-                                <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">View Job</a>
-                            </div>
-                        </div>
-                        
-                        <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                            <h3 class="font-medium text-gray-900 dark:text-white">Full Stack Developer</h3>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">InnovateTech Inc.</p>
-                            <div class="flex items-center mt-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 dark:text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-                                </svg>
-                                <span class="text-xs text-gray-500 dark:text-gray-400 ml-1">Nairobi, Kenya</span>
-                                <span class="mx-2 text-gray-500 dark:text-gray-400">•</span>
-                                <span class="text-xs text-gray-500 dark:text-gray-400">$80K - $100K</span>
-                            </div>
-                            <div class="mt-3">
-                                <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">View Job</a>
-                            </div>
-                        </div>
+                        @empty
+                            <p class="text-gray-500 dark:text-gray-400">No recommended jobs found right now.</p>
+                        @endforelse
                     </div>
                     
                     <div class="mt-4 text-right">
                         <a href="{{ route('jobs.index') }}" class="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
-                            View all jobs →
+                            Find more jobs →
                         </a>
                     </div>
                 </div>

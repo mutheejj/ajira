@@ -82,6 +82,9 @@ Route::get('/accessibility', [PageController::class, 'accessibility'])->name('ac
 Route::get('/features', [PageController::class, 'features'])->name('features');
 Route::get('/learn-more', [PageController::class, 'learnMore'])->name('learn-more');
 
+// Platform Statistics Route
+Route::get('/stats', [App\Http\Controllers\HomeController::class, 'stats'])->name('stats');
+
 // Authentication routes
 // Auth::routes(['verify' => true]);
 

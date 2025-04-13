@@ -15,9 +15,20 @@ class CategoryAndSkillSeeder extends Seeder
      */
     public function run(): void
     {
+        // Disable foreign key checks
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        
         // Clear existing records to avoid duplicates
-        DB::table('skills')->truncate();
-        DB::table('categories')->truncate();
+        // Clear pivot table first to avoid constraint issues if any
+        DB::table('job_post_skill')->truncate(); // Assuming this is the pivot table name
+        Skill::truncate();
+        Category::truncate();
+        
+        // Re-enable foreign key checks
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        
+        // Keep track of added skills to ensure uniqueness
+        $addedSkills = [];
         
         // Define categories
         $categories = [
@@ -142,11 +153,20 @@ class CategoryAndSkillSeeder extends Seeder
             
             // Create skills for this category
             foreach ($skills as $skillName) {
-                Skill::create([
-                    'name' => $skillName,
-                    'slug' => Str::slug($skillName),
-                    'category_id' => $category->id
-                ]);
+                $skillSlug = Str::slug($skillName);
+                
+                // Only add skill if its slug hasn't been added before
+                if (!isset($addedSkills[$skillSlug])) {
+                    Skill::create([
+                        'name' => $skillName,
+                        'slug' => $skillSlug,
+                        'category_id' => $category->id // Assign to current category
+                    ]);
+                    $addedSkills[$skillSlug] = true; // Mark skill slug as added
+                } else {
+                    // Optional: Log or inform that the skill was skipped
+                    $this->command->warn("Skipped duplicate skill: {$skillName} (slug: {$skillSlug})");
+                }
             }
         }
     }
