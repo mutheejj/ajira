@@ -253,7 +253,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 // Settings route
 Route::middleware(['auth'])->group(function () {
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
-    Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
+    Route::patch('/settings', [SettingsController::class, 'update'])->name('settings.update');
+    Route::patch('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password');
+    Route::delete('/settings', [SettingsController::class, 'deleteAccount'])->name('settings.delete');
     
     // Wallet routes for all users
     Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');

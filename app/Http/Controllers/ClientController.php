@@ -376,6 +376,53 @@ class ClientController extends Controller
     }
     
     /**
+     * Display active contracts for the client.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function activeContracts(Request $request)
+    {
+        $user = auth()->user();
+        
+        // This is a placeholder - replace with actual contract logic when implemented
+        $contracts = [];
+        
+        return view('client.active-contracts', compact('contracts'));
+    }
+    
+    /**
+     * Display client payment history.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function payments(Request $request)
+    {
+        $user = auth()->user();
+        
+        // This is a placeholder - replace with actual payment logic when implemented
+        $payments = [];
+        
+        return view('client.payments', compact('payments'));
+    }
+    
+    /**
+     * Display client reports.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function reports()
+    {
+        $user = auth()->user();
+        
+        // This is a placeholder - replace with actual reports logic when implemented
+        $reports = [];
+        
+        return view('client.reports', compact('reports'));
+    }
+    
+    /**
      * Update client profile.
      *
      * @param  \Illuminate\Http\Request  $request

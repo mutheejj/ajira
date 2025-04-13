@@ -78,4 +78,51 @@ class SettingsController extends Controller
         
         return back()->with('success', 'Settings updated successfully!');
     }
+    
+    /**
+     * Update the user's password.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updatePassword(Request $request)
+    {
+        $user = Auth::user();
+        
+        $request->validate([
+            'current_password' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+        
+        // Check current password
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors([
+                'current_password' => 'The current password is incorrect.',
+            ]);
+        }
+        
+        // Update password
+        $user->password = Hash::make($request->password);
+        $user->save();
+        
+        return back()->with('success', 'Password updated successfully!');
+    }
+    
+    /**
+     * Delete the user's account.
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function deleteAccount()
+    {
+        $user = Auth::user();
+        
+        // Log the user out first
+        Auth::logout();
+        
+        // Delete the user account
+        $user->delete();
+        
+        return redirect()->route('home')->with('success', 'Your account has been deleted successfully.');
+    }
 } 
