@@ -68,6 +68,23 @@
                             </div>
                         </div>
                         
+                        @if($jobPost->application_deadline)
+                        <div class="mt-2 mb-3">
+                            <div class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 {{ now() > $jobPost->application_deadline ? 'text-red-500' : 'text-green-500' }}" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                                </svg>
+                                <span class="text-sm {{ now() > $jobPost->application_deadline ? 'text-red-500 font-bold' : 'text-gray-600 dark:text-gray-400' }}">
+                                    Application {{ now() > $jobPost->application_deadline ? 'closed on' : 'deadline:' }} 
+                                    {{ $jobPost->application_deadline->format('M d, Y') }}
+                                    @if(now() <= $jobPost->application_deadline)
+                                        ({{ now()->diffForHumans($jobPost->application_deadline) }})
+                                    @endif
+                                </span>
+                            </div>
+                        </div>
+                        @endif
+                        
                         <div class="flex flex-wrap gap-2 my-4">
                             @foreach(json_decode($jobPost->skills) as $skill)
                             <span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs rounded-full">

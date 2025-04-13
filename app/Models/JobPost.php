@@ -29,6 +29,7 @@ class JobPost extends Model
         'location',
         'remote_work',
         'status',
+        'application_deadline',
     ];
 
     /**
@@ -43,6 +44,7 @@ class JobPost extends Model
         'remote_work' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'application_deadline' => 'datetime',
     ];
 
     /**
@@ -119,5 +121,16 @@ class JobPost extends Model
     public function scopeClosed($query)
     {
         return $query->where('status', 'closed');
+    }
+
+    /**
+     * Check if the job application deadline has passed.
+     */
+    public function isDeadlinePassed()
+    {
+        if ($this->application_deadline) {
+            return now() > $this->application_deadline;
+        }
+        return false;
     }
 } 

@@ -56,9 +56,40 @@ class JobPostController extends Controller
             $query->where('project_type', $projectType);
         }
 
+        // Apply deadline filter
+        if ($request->has('deadline_status')) {
+            $deadlineStatus = $request->get('deadline_status');
+            if ($deadlineStatus === 'open') {
+                $query->where(function($q) {
+                    $q->whereNull('application_deadline')
+                      ->orWhere('application_deadline', '>=', now());
+                });
+            } elseif ($deadlineStatus === 'closed') {
+                $query->where('application_deadline', '<', now());
+            }
+        }
+
         // Apply budget range filter
         if ($request->has('min_budget') && $request->has('max_budget')) {
             $query->whereBetween('budget', [$request->get('min_budget'), $request->get('max_budget')]);
+        }
+
+        // Apply sorting
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortDir = $request->get('sort_dir', 'desc');
+        
+        if ($sortBy === 'deadline') {
+            // Sort by deadline (null deadlines last if ascending, first if descending)
+            if ($sortDir === 'asc') {
+                $query->orderByRaw('application_deadline IS NULL ASC')
+                      ->orderBy('application_deadline', 'asc');
+            } else {
+                $query->orderByRaw('application_deadline IS NULL DESC')
+                      ->orderBy('application_deadline', 'desc');
+            }
+        } else {
+            // Other sorts (created_at, budget)
+            $query->orderBy($sortBy, $sortDir);
         }
 
         $jobs = $query->paginate(10);
@@ -115,6 +146,7 @@ class JobPostController extends Controller
             'location' => 'nullable|string|max:255',
             'remote_work' => 'boolean',
             'status' => 'required|in:active,draft',
+            'application_deadline' => 'nullable|date|after_or_equal:today',
         ]);
 
         try {
@@ -192,6 +224,7 @@ class JobPostController extends Controller
             'location' => 'nullable|string|max:255',
             'remote_work' => 'boolean',
             'status' => 'required|in:active,closed,draft',
+            'application_deadline' => 'nullable|date',
         ]);
 
         try {

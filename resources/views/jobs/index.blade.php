@@ -49,6 +49,16 @@
                         </select>
                     </div>
                     
+                    <!-- Application Deadline Status -->
+                    <div class="mb-4">
+                        <label for="deadline_status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Deadline Status</label>
+                        <select id="deadline_status" name="deadline_status" class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white text-sm">
+                            <option value="">All Jobs</option>
+                            <option value="open" {{ request('deadline_status') == 'open' ? 'selected' : '' }}>Open Applications</option>
+                            <option value="closed" {{ request('deadline_status') == 'closed' ? 'selected' : '' }}>Closed Applications</option>
+                        </select>
+                    </div>
+                    
                     <!-- Budget Range -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Budget Range</label>
@@ -85,6 +95,8 @@
                             <option value="oldest">Oldest First</option>
                             <option value="budget_high">Budget: High to Low</option>
                             <option value="budget_low">Budget: Low to High</option>
+                            <option value="deadline_soon">Deadline: Soonest First</option>
+                            <option value="deadline_later">Deadline: Latest First</option>
                         </select>
                     </div>
                 </div>
@@ -134,6 +146,20 @@
                                             {{ \Illuminate\Support\Str::limit($job->description, 200) }}
                                         </p>
                                     </div>
+                                    
+                                    @if($job->application_deadline)
+                                    <div class="mt-3">
+                                        <div class="flex items-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 {{ now() > $job->application_deadline ? 'text-red-500' : 'text-green-500' }}" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                                            </svg>
+                                            <span class="text-xs {{ now() > $job->application_deadline ? 'text-red-500 font-bold' : 'text-gray-500 dark:text-gray-400' }}">
+                                                Application {{ now() > $job->application_deadline ? 'closed on' : 'deadline:' }} 
+                                                {{ $job->application_deadline->format('M d, Y') }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    @endif
                                     
                                     <div class="mt-4 flex flex-wrap gap-2">
                                         @foreach(json_decode($job->skills) as $skill)
@@ -232,6 +258,14 @@
                     url.searchParams.set('sort_by', 'budget');
                     url.searchParams.set('sort_dir', 'asc');
                     break;
+                case 'deadline_soon':
+                    url.searchParams.set('sort_by', 'deadline');
+                    url.searchParams.set('sort_dir', 'asc');
+                    break;
+                case 'deadline_later':
+                    url.searchParams.set('sort_by', 'deadline');
+                    url.searchParams.set('sort_dir', 'desc');
+                    break;
             }
             
             window.location = url.toString();
@@ -249,6 +283,10 @@
             sortSelect.value = 'budget_high';
         } else if (sortBy === 'budget' && sortDir === 'asc') {
             sortSelect.value = 'budget_low';
+        } else if (sortBy === 'deadline' && sortDir === 'asc') {
+            sortSelect.value = 'deadline_soon';
+        } else if (sortBy === 'deadline' && sortDir === 'desc') {
+            sortSelect.value = 'deadline_later';
         }
     });
 </script>
