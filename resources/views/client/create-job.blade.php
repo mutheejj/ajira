@@ -261,8 +261,30 @@
                     @enderror
                 </div>
                 
+                <!-- Application Deadline -->
+                <div class="col-span-2 md:col-span-1">
+                    <label for="application_deadline" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Application Deadline
+                        <span class="text-xs text-gray-500 dark:text-gray-400 font-normal ml-1">(Optional)</span>
+                    </label>
+                    <input 
+                        type="date" 
+                        id="application_deadline" 
+                        name="application_deadline" 
+                        value="{{ old('application_deadline') }}" 
+                        min="{{ date('Y-m-d') }}"
+                        class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    >
+                    @error('application_deadline')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Set a deadline for when applications will close. Leave blank for no deadline.
+                    </p>
+                </div>
+                
                 <!-- Status -->
-                <div class="col-span-2">
+                <div class="col-span-2 md:col-span-1">
                     <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Status*</label>
                     <select id="status" name="status" required class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                         <option value="active" {{ old('status') == 'active' ? 'selected' : '' }}>Active (Publish Immediately)</option>

@@ -202,6 +202,7 @@ class ClientController extends Controller
                 'attachment' => 'nullable|file|max:5120',
                 'status' => 'nullable|string|in:draft,active',
                 'duration' => 'nullable|integer|min:1',
+                'application_deadline' => 'nullable|date|after_or_equal:today',
             ]);
             
             \Log::info('Job post validation passed', ['skills' => $request->skills]);
@@ -239,6 +240,7 @@ class ClientController extends Controller
             $jobPost->location = $request->location;
             $jobPost->status = $request->status ?? 'active';
             $jobPost->duration = $request->duration ?? 30; // Default duration of 30 days
+            $jobPost->application_deadline = $request->application_deadline; // Save the application deadline
             
             // Handle attachment if provided
             if ($request->hasFile('attachment') && $request->file('attachment')->isValid()) {
