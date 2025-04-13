@@ -32,16 +32,6 @@ class CreateCategoriesAndSkillsTables extends Migration
             $table->timestamps();
         });
 
-        // Pivot table for job posts and skills
-        Schema::create('job_post_skill', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('job_post_id')->constrained()->onDelete('cascade');
-            $table->foreignId('skill_id')->constrained()->onDelete('cascade');
-            $table->timestamps();
-
-            $table->unique(['job_post_id', 'skill_id']);
-        });
-
         // Pivot table for users and skills
         Schema::create('user_skill', function (Blueprint $table) {
             $table->id();
@@ -53,14 +43,6 @@ class CreateCategoriesAndSkillsTables extends Migration
 
             $table->unique(['user_id', 'skill_id']);
         });
-
-        // Update job_posts table to reference category_id
-        Schema::table('job_posts', function (Blueprint $table) {
-            // First check if the column doesn't already exist
-            if (!Schema::hasColumn('job_posts', 'category_id')) {
-                $table->foreignId('category_id')->nullable()->after('category')->constrained()->onDelete('set null');
-            }
-        });
     }
 
     /**
@@ -68,17 +50,8 @@ class CreateCategoriesAndSkillsTables extends Migration
      */
     public function down(): void
     {
-        // Remove foreign key from job_posts table
-        Schema::table('job_posts', function (Blueprint $table) {
-            if (Schema::hasColumn('job_posts', 'category_id')) {
-                $table->dropForeign(['category_id']);
-                $table->dropColumn('category_id');
-            }
-        });
-
-        // Drop pivot tables
+        // Drop pivot table
         Schema::dropIfExists('user_skill');
-        Schema::dropIfExists('job_post_skill');
         
         // Drop main tables
         Schema::dropIfExists('skills');
