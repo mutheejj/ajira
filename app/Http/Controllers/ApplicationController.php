@@ -34,6 +34,12 @@ class ApplicationController extends Controller
     {
         $jobPost = JobPost::findOrFail($jobId);
         
+        // Check if job application deadline has passed
+        if ($jobPost->application_deadline && now() > $jobPost->application_deadline) {
+            return redirect()->route('jobs.show', $jobId)
+                ->with('error', 'The application deadline for this job has passed.');
+        }
+        
         // Check if user is already applied for this job
         $alreadyApplied = Application::where('job_post_id', $jobId)
             ->where('user_id', Auth::id())
@@ -63,6 +69,12 @@ class ApplicationController extends Controller
     public function store(Request $request, $jobId)
     {
         $jobPost = JobPost::findOrFail($jobId);
+        
+        // Check if job application deadline has passed
+        if ($jobPost->application_deadline && now() > $jobPost->application_deadline) {
+            return redirect()->route('jobs.show', $jobId)
+                ->with('error', 'The application deadline for this job has passed.');
+        }
         
         // Validate request
         $request->validate([

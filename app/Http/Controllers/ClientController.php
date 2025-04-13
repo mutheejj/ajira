@@ -301,6 +301,81 @@ class ClientController extends Controller
     }
     
     /**
+     * View all applications for the client's jobs.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function applications(Request $request)
+    {
+        $user = auth()->user();
+        $jobIds = $user->jobPosts()->pluck('id')->toArray();
+        
+        // Prepare query with filters
+        $query = Application::with(['user', 'jobPost'])
+            ->whereIn('job_post_id', $jobIds);
+            
+        // Apply filters
+        if ($request->filled('job_id')) {
+            $query->where('job_post_id', $request->job_id);
+        }
+        
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        
+        // Apply sorting
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortDir = $request->get('sort_dir', 'desc');
+        
+        $allowedSortFields = ['created_at', 'bid_amount'];
+        if (!in_array($sortBy, $allowedSortFields)) {
+            $sortBy = 'created_at';
+        }
+        
+        $query->orderBy($sortBy, $sortDir);
+        
+        // Get applications
+        $applications = $query->paginate(10);
+        
+        // Get all client jobs for filter dropdown
+        $jobs = $user->jobPosts;
+        
+        // Calculate statistics for the dashboard
+        $statistics = [
+            'total' => Application::whereIn('job_post_id', $jobIds)->count(),
+            'pending' => Application::whereIn('job_post_id', $jobIds)->where('status', 'pending')->count(),
+            'shortlisted' => Application::whereIn('job_post_id', $jobIds)->where('status', 'accepted')->count(),
+            'rejected' => Application::whereIn('job_post_id', $jobIds)->where('status', 'rejected')->count()
+        ];
+        
+        // Format the applications to match view expectations
+        foreach ($applications as $application) {
+            // Add the jobSeeker property that the view expects
+            $application->jobSeeker = $application->user;
+            
+            // Add the job property that the view expects
+            $application->job = $application->jobPost;
+            
+            // Add the match_score property (example calculation - you can improve this)
+            $application->match_score = rand(50, 100); // Placeholder for demo
+            
+            // Add the applied_date property
+            $application->applied_date = $application->created_at;
+        }
+        
+        // Get status counts for filters - not used in this view currently
+        $statusCounts = [
+            'all' => $statistics['total'],
+            'pending' => $statistics['pending'],
+            'accepted' => $statistics['shortlisted'],
+            'rejected' => $statistics['rejected']
+        ];
+        
+        return view('client.applications', compact('applications', 'jobs', 'statistics', 'statusCounts'));
+    }
+    
+    /**
      * Update client profile.
      *
      * @param  \Illuminate\Http\Request  $request
