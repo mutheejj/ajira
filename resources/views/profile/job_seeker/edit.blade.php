@@ -108,9 +108,19 @@
                 <!-- Skills -->
                 <div class="mt-6">
                     <label for="skills" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Skills *</label>
+                    @php
+                        $selectedSkills = old('skills', $user->skills);
+                        // Ensure $selectedSkills is an array, decoding JSON if necessary
+                        if (is_string($selectedSkills)) {
+                            $decodedSkills = json_decode($selectedSkills, true);
+                            $selectedSkills = is_array($decodedSkills) ? $decodedSkills : [];
+                        } elseif (!is_array($selectedSkills)) {
+                            $selectedSkills = [];
+                        }
+                    @endphp
                     <select id="skills" name="skills[]" multiple class="select2 w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white">
                         @foreach(\App\Models\Skill::orderBy('name')->get() as $skill)
-                            <option value="{{ $skill->name }}" {{ in_array($skill->name, old('skills', $user->skills ?? [])) ? 'selected' : '' }}>{{ $skill->name }}</option>
+                            <option value="{{ $skill->name }}" {{ in_array($skill->name, $selectedSkills) ? 'selected' : '' }}>{{ $skill->name }}</option>
                         @endforeach
                     </select>
                     @error('skills')
