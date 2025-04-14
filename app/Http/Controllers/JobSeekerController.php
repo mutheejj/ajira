@@ -118,37 +118,7 @@ class JobSeekerController extends Controller
         }
         
         // If no tasks found, provide placeholder data for UI display
-        if ($tasks->isEmpty()) {
-            $tasks = collect([
-                [
-                    'id' => 1,
-                    'title' => 'Web Application Frontend Development',
-                    'client' => 'TechCorp Solutions',
-                    'status' => 'in-progress',
-                    'priority' => 'high',
-                    'due_date' => now()->addDays(5)->format('Y-m-d'),
-                    'progress' => 65
-                ],
-                [
-                    'id' => 2,
-                    'title' => 'Ecommerce Website Migration',
-                    'client' => 'Fashion Boutique Inc',
-                    'status' => 'in-progress',
-                    'priority' => 'medium',
-                    'due_date' => now()->addDays(10)->format('Y-m-d'),
-                    'progress' => 30
-                ],
-                [
-                    'id' => 3,
-                    'title' => 'Mobile App UI Design',
-                    'client' => 'Health & Fitness Co',
-                    'status' => 'pending',
-                    'priority' => 'low',
-                    'due_date' => now()->addDays(14)->format('Y-m-d'),
-                    'progress' => 0
-                ],
-            ]);
-        }
+        // REMOVED PLACEHOLDER LOGIC
         
         return view('job-seeker.tasks', compact('tasks'));
     }
@@ -220,43 +190,31 @@ class JobSeekerController extends Controller
      */
     public function contracts()
     {
-        // For demo purposes, create sample contracts
-        $contracts = collect([
-            [
-                'id' => 1,
-                'title' => 'Web Application Development',
-                'client' => 'TechCorp Solutions',
-                'start_date' => now()->subDays(15)->format('Y-m-d'),
-                'end_date' => now()->addDays(45)->format('Y-m-d'),
-                'status' => 'active',
-                'payment_type' => 'hourly',
-                'rate' => 35,
-                'total_earned' => 1050
-            ],
-            [
-                'id' => 2,
-                'title' => 'Ecommerce Website Migration',
-                'client' => 'Fashion Boutique Inc',
-                'start_date' => now()->subDays(5)->format('Y-m-d'),
-                'end_date' => now()->addDays(25)->format('Y-m-d'),
-                'status' => 'active',
-                'payment_type' => 'fixed',
-                'rate' => 2500,
-                'total_earned' => 1000
-            ],
-            [
-                'id' => 3,
-                'title' => 'Logo Design Project',
-                'client' => 'Local Restaurant',
-                'start_date' => now()->subDays(30)->format('Y-m-d'),
-                'end_date' => now()->subDays(20)->format('Y-m-d'),
-                'status' => 'completed',
-                'payment_type' => 'fixed',
-                'rate' => 500,
-                'total_earned' => 500
-            ],
-        ]);
-        
+        $jobSeekerId = Auth::id(); // Get the logged-in job seeker's ID
+
+        // Fetch contracts for the logged-in job seeker from the database
+        // Adjust the query based on your actual database structure and relationships
+        $contracts = Contract::where('job_seeker_id', $jobSeekerId)
+                             ->with('client') // Eager load client info if relationship exists
+                             ->orderBy('start_date', 'desc')
+                             ->get()
+                             ->map(function ($contract) {
+                                 // Format or structure data as needed for the view
+                                 return [
+                                     'id' => $contract->id,
+                                     'title' => $contract->title,
+                                     // Assuming a 'client' relationship exists returning a User model with a 'name' attribute
+                                     // Or if client name is directly on the contract table, use $contract->client_name
+                                     'client' => $contract->client->name ?? 'N/A',
+                                     'start_date' => $contract->start_date->format('Y-m-d'),
+                                     'end_date' => $contract->end_date ? $contract->end_date->format('Y-m-d') : null, // Handle potential null end dates
+                                     'status' => $contract->status,
+                                     'payment_type' => $contract->payment_type,
+                                     'rate' => $contract->rate, // Hourly rate or fixed price based on payment_type
+                                     'total_earned' => $contract->total_earned ?? 0 // Assuming a total_earned field exists
+                                 ];
+                             });
+
         return view('job-seeker.contracts', compact('contracts'));
     }
     
