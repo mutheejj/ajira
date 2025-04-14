@@ -305,56 +305,51 @@
         </div>
         
         <nav class="mt-4">
-            <a href="{{ auth()->user()->isJobSeeker() ? route('jobseeker.dashboard') : route('client.dashboard') }}" class="user-menu-item {{ request()->routeIs('*.dashboard') ? 'active' : '' }}">
-                <svg class="user-menu-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
-                </svg>
-                Dashboard
-            </a>
-            
-            <a href="{{ route('profile.edit') }}" class="user-menu-item {{ request()->routeIs('profile.*') ? 'active' : '' }}">
-                <svg class="user-menu-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"></path>
-                </svg>
-                Your profile
-            </a>
-            
-            @if(auth()->user()->user_type === 'job-seeker')
-            <a href="{{ route('applications.my') }}" class="user-menu-item {{ request()->routeIs('applications.*') ? 'active' : '' }}">
-                <svg class="user-menu-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
-                </svg>
-                My Applications
-            </a>
-            
-            <a href="{{ route('saved-jobs.index') }}" class="user-menu-item {{ request()->routeIs('saved-jobs.*') ? 'active' : '' }}">
-                <svg class="user-menu-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"></path>
-                </svg>
-                Saved Jobs
-            </a>
-            
-            <a href="{{ route('jobs.index') }}" class="user-menu-item {{ request()->routeIs('jobs.*') ? 'active' : '' }}">
-                <svg class="user-menu-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
-                </svg>
-                Find Jobs
-            </a>
-            
-            <a href="{{ route('jobseeker.tasks') }}" class="user-menu-item {{ request()->routeIs('jobseeker.tasks') ? 'active' : '' }}">
-                <svg class="user-menu-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
-                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"></path>
-                </svg>
-                Active Tasks
-            </a>
-            
-            <a href="{{ route('jobseeker.worklog') }}" class="user-menu-item {{ request()->routeIs('jobseeker.worklog') ? 'active' : '' }}">
-                <svg class="user-menu-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
-                </svg>
-                Work Log
-            </a>
+            @if(Auth::user()->isJobSeeker())
+                <a href="{{ route('jobseeker.dashboard') }}" class="user-menu-item {{ request()->routeIs('jobseeker.dashboard') ? 'active' : '' }}">
+                    @include('icons.dashboard', ['class' => 'user-menu-icon'])
+                    Dashboard
+                </a>
+                <a href="{{ route('applications.my') }}" class="user-menu-item {{ request()->routeIs('applications.my') ? 'active' : '' }}">
+                    @include('icons.applications', ['class' => 'user-menu-icon'])
+                    My Applications
+                </a>
+                <a href="{{ route('saved-jobs.index') }}" class="user-menu-item {{ request()->routeIs('saved-jobs.index') ? 'active' : '' }}">
+                    @include('icons.saved-jobs', ['class' => 'user-menu-icon'])
+                    Saved Jobs
+                </a>
+                <a href="{{ route('jobs.index') }}" class="user-menu-item {{ request()->routeIs('jobs.index') ? 'active' : '' }}">
+                    @include('icons.find-jobs', ['class' => 'user-menu-icon'])
+                    Find Jobs
+                </a>
+                <a href="{{ route('jobseeker.tasks') }}" class="user-menu-item {{ request()->routeIs('jobseeker.tasks') ? 'active' : '' }}">
+                    @include('icons.tasks', ['class' => 'user-menu-icon'])
+                    Active Tasks
+                </a>
+                <a href="{{ route('jobseeker.worklog') }}" class="user-menu-item {{ request()->routeIs('jobseeker.worklog') ? 'active' : '' }}">
+                    @include('icons.worklog', ['class' => 'user-menu-icon'])
+                    Work Log
+                </a>
+                <a href="{{ route('jobseeker.contracts') }}" class="user-menu-item {{ request()->routeIs('jobseeker.contracts') ? 'active' : '' }}">
+                    @include('icons.contracts', ['class' => 'user-menu-icon'])
+                    Contracts
+                </a>
+                <a href="{{ route('jobseeker.earnings') }}" class="user-menu-item {{ request()->routeIs('jobseeker.earnings') ? 'active' : '' }}">
+                    @include('icons.earnings', ['class' => 'user-menu-icon'])
+                    Earnings
+                </a>
+                <a href="{{ route('jobseeker.portfolio') }}" class="user-menu-item {{ request()->routeIs('jobseeker.portfolio') ? 'active' : '' }}">
+                    @include('icons.portfolio', ['class' => 'user-menu-icon'])
+                    Portfolio
+                </a>
+                <a href="{{ route('jobseeker.reviews') }}" class="user-menu-item {{ request()->routeIs('jobseeker.reviews') ? 'active' : '' }}">
+                    @include('icons.reviews', ['class' => 'user-menu-icon'])
+                    Reviews
+                </a>
+                <a href="{{ route('wallet.index') }}" class="user-menu-item {{ request()->routeIs('wallet.index') ? 'active' : '' }}">
+                    @include('icons.wallet', ['class' => 'user-menu-icon'])
+                    Wallet
+                </a>
             @endif
             
             @if(auth()->user()->user_type === 'client')
@@ -445,7 +440,7 @@
         class="fixed bottom-6 left-6 z-40 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
         @click="sidebarOpen = !sidebarOpen"
     >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/20000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
         </svg>
     </button>
