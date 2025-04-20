@@ -42,7 +42,7 @@
                     <p class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase">Pending Applications</p>
                     <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['pending_applications'] }}</p>
                     <p class="text-sm text-gray-500 dark:text-gray-400">
-                        <a href="#" class="text-blue-600 dark:text-blue-400 hover:underline">Review applications</a>
+                        <a href="{{ route('client.applications') }}" class="text-blue-600 dark:text-blue-400 hover:underline">Review applications</a>
                     </p>
                 </div>
             </div>
@@ -60,7 +60,7 @@
                     <p class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase">Active Contracts</p>
                     <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['active_contracts'] }}</p>
                     <p class="text-sm text-gray-500 dark:text-gray-400">
-                        <a href="#" class="text-blue-600 dark:text-blue-400 hover:underline">Manage contracts</a>
+                        <a href="{{ route('client.active-contracts') }}" class="text-blue-600 dark:text-blue-400 hover:underline">Manage contracts</a>
                     </p>
                 </div>
             </div>
@@ -100,7 +100,7 @@
         <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg rounded-lg p-6">
             <h3 class="text-xl font-bold mb-2">Browse Talent</h3>
             <p class="text-purple-100 mb-4">Discover top-rated freelancers based on skills, ratings, and experience.</p>
-            <a href="#" class="inline-block bg-white text-purple-600 font-medium px-4 py-2 rounded-md hover:bg-purple-50 transition-colors">
+            <a href="{{ route('freelancer.index') }}" class="inline-block bg-white text-purple-600 font-medium px-4 py-2 rounded-md hover:bg-purple-50 transition-colors">
                 Find Talent
             </a>
         </div>
@@ -216,7 +216,7 @@
                 </div>
                 
                 <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
-                    <a href="#" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300">
+                    <a href="{{ route('client.applications') }}" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300">
                         View all applications →
                     </a>
                 </div>
