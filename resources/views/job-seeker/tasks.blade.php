@@ -113,7 +113,7 @@
                     </div>
                 </div>
                 
-                @if(count($tasks ?? []) > 0)
+                @if(($tasks ?? collect())->count() > 0)
                 <div class="overflow-x-auto">
                     <table class="min-w-full bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
                         <thead class="bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 text-sm">
@@ -220,7 +220,7 @@
                                 </div>
                                 <div class="ml-4">
                                     <h3 class="text-lg font-medium text-gray-700 dark:text-gray-200">Total Tasks</h3>
-                                    <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ count($tasks ?? []) }}</p>
+                                    <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ ($tasks ?? collect())->count() }}</p>
                                 </div>
                             </div>
                         </div>
@@ -235,7 +235,7 @@
                                 <div class="ml-4">
                                     <h3 class="text-lg font-medium text-gray-700 dark:text-gray-200">In Progress</h3>
                                     <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-                                        {{ count(array_filter($tasks ?? [], function($task) { return $task['status'] === 'in-progress'; })) }}
+                                        {{ ($tasks ?? collect())->where('status', 'in-progress')->count() }}
                                     </p>
                                 </div>
                             </div>
@@ -251,7 +251,7 @@
                                 <div class="ml-4">
                                     <h3 class="text-lg font-medium text-gray-700 dark:text-gray-200">Completed</h3>
                                     <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-                                        {{ count(array_filter($tasks ?? [], function($task) { return $task['status'] === 'completed'; })) }}
+                                        {{ ($tasks ?? collect())->where('status', 'completed')->count() }}
                                     </p>
                                 </div>
                             </div>
