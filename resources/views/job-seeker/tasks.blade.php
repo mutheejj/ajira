@@ -66,29 +66,9 @@
         
         <!-- Main Content -->
         <div class="flex-1">
-            <!-- Deadline Reminders Banner -->
-            @if(isset($upcomingDeadlines) && count($upcomingDeadlines) > 0)
-            <div class="bg-yellow-50 dark:bg-yellow-900 border-l-4 border-yellow-400 p-4 mb-6 rounded-lg">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                        </svg>
-                    </div>
-                    <div class="ml-3">
-                        <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">Upcoming Deadline(s)</h3>
-                        <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
-                            <ul class="list-disc pl-5 space-y-1">
-                                @foreach($upcomingDeadlines as $deadline)
-                                <li>
-                                    "{{ $deadline['title'] }}" is due in {{ $deadline['days_remaining'] }} days
-                                    <a href="{{ route('jobseeker.workspace', $deadline['id']) }}" class="font-medium underline">View task</a>
-                                </li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+            @if(session('success'))
+            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded" role="alert">
+                <p>{{ session('success') }}</p>
             </div>
             @endif
 
@@ -102,17 +82,174 @@
                             <option value="pending">Pending</option>
                             <option value="completed">Completed</option>
                         </select>
-                        <div class="relative">
-                            <input type="text" placeholder="Search tasks..." class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-md pl-10 pr-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <div class="absolute left-3 top-2.5 text-gray-400">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 
+                <!-- Job Applications Section -->
+                @if(isset($applications) && $applications->count() > 0)
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Job Applications</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
+                            <thead class="bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 text-sm">
+                                <tr>
+                                    <th class="py-3 px-4 text-left font-medium">Job Title</th>
+                                    <th class="py-3 px-4 text-left font-medium">Client</th>
+                                    <th class="py-3 px-4 text-left font-medium">Status</th>
+                                    <th class="py-3 px-4 text-left font-medium">Applied Date</th>
+                                    <th class="py-3 px-4 text-left font-medium">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                @foreach($applications as $application)
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
+                                    <td class="py-3 px-4">
+                                        <div class="font-medium text-gray-900 dark:text-white">
+                                            @if(is_object($application) && isset($application->job) && isset($application->job->title))
+                                                {{ $application->job->title }}
+                                            @elseif(is_array($application) && isset($application['job']) && isset($application['job']->title))
+                                                {{ $application['job']->title }}
+                                            @else
+                                                Unknown Job
+                                            @endif
+                                        </div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                                            @if(is_object($application) && isset($application->job) && isset($application->job->description))
+                                                {{ Str::limit($application->job->description ?? 'No description available', 60) }}
+                                            @elseif(is_array($application) && isset($application['job']) && isset($application['job']->description))
+                                                {{ Str::limit($application['job']->description ?? 'No description available', 60) }}
+                                            @else
+                                                No description available
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-8 w-8">
+                                                <div class="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                                                    <span class="text-blue-600 dark:text-blue-300 font-medium text-sm">
+                                                        @php
+                                                            $clientName = null;
+                                                            if(is_object($application) && isset($application->job) && isset($application->job->client) && isset($application->job->client->name)) {
+                                                                $clientName = $application->job->client->name;
+                                                            } elseif(is_array($application) && isset($application['job']) && isset($application['job']->client) && isset($application['job']->client->name)) {
+                                                                $clientName = $application['job']->client->name;
+                                                            }
+                                                        @endphp
+                                                        {{ $clientName ? substr($clientName, 0, 1) : '?' }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="ml-3">
+                                                <div class="text-sm font-medium text-gray-900 dark:text-white">
+                                                    @if(is_object($application) && isset($application->job) && isset($application->job->client) && isset($application->job->client->name))
+                                                        {{ $application->job->client->name }}
+                                                    @elseif(is_array($application) && isset($application['job']) && isset($application['job']->client) && isset($application['job']->client->name))
+                                                        {{ $application['job']->client->name }}
+                                                    @else
+                                                        Unknown Client
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        @php
+                                            $status = is_object($application) ? ($application->status ?? null) : ($application['status'] ?? null);
+                                        @endphp
+                                        @if($status)
+                                            @if($status === 'pending')
+                                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">Pending</span>
+                                            @elseif($status === 'reviewing')
+                                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">Reviewing</span>
+                                            @elseif($status === 'interviewed')
+                                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">Interviewed</span>
+                                            @elseif($status === 'accepted')
+                                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Accepted</span>
+                                            @elseif($status === 'rejected')
+                                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">Rejected</span>
+                                            @elseif($status === 'withdrawn')
+                                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200">Withdrawn</span>
+                                            @else
+                                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200">{{ ucfirst($status) }}</span>
+                                            @endif
+                                        @else
+                                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200">Unknown</span>
+                                        @endif
+                                    </td>
+                                    <td class="py-3 px-4 text-gray-600 dark:text-gray-300">
+                                        @php
+                                            $created = null;
+                                            if(is_object($application) && isset($application->created_at)) {
+                                                $created = $application->created_at;
+                                            } elseif(is_array($application) && isset($application['created_at'])) {
+                                                $created = $application['created_at'];
+                                            } elseif(is_object($application) && isset($application->applied_date)) {
+                                                $created = $application->applied_date;
+                                            } elseif(is_array($application) && isset($application['applied_date'])) {
+                                                $created = $application['applied_date'];
+                                            }
+                                        @endphp
+                                        @if($created)
+                                            {{ \Carbon\Carbon::parse($created)->format('M d, Y') }}
+                                        @else
+                                            Unknown date
+                                        @endif
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex space-x-2">
+                                            @php
+                                                $jobId = null;
+                                                if(is_object($application) && isset($application->job) && isset($application->job->id)) {
+                                                    $jobId = $application->job->id;
+                                                } elseif(is_array($application) && isset($application['job']) && isset($application['job']->id)) {
+                                                    $jobId = $application['job']->id;
+                                                } elseif(is_object($application) && isset($application->job_id)) {
+                                                    $jobId = $application->job_id;
+                                                } elseif(is_array($application) && isset($application['job_id'])) {
+                                                    $jobId = $application['job_id'];
+                                                }
+                                                
+                                                $applicationId = null;
+                                                if(is_object($application) && isset($application->id)) {
+                                                    $applicationId = $application->id;
+                                                } elseif(is_array($application) && isset($application['id'])) {
+                                                    $applicationId = $application['id'];
+                                                }
+                                                
+                                                $applicationStatus = null;
+                                                if(is_object($application) && isset($application->status)) {
+                                                    $applicationStatus = $application->status;
+                                                } elseif(is_array($application) && isset($application['status'])) {
+                                                    $applicationStatus = $application['status'];
+                                                }
+                                            @endphp
+                                            
+                                            @if($jobId)
+                                                <a href="{{ route('jobs.show', $jobId) }}" class="text-blue-600 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200 dark:hover:bg-blue-800 px-3 py-1 rounded-md text-sm font-medium">
+                                                    View Job
+                                                </a>
+                                            @endif
+                                            
+                                            @if($applicationId && $applicationStatus === 'pending')
+                                                <form action="{{ route('applications.withdraw', $applicationId) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit" class="text-red-600 bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:text-red-200 dark:hover:bg-red-800 px-3 py-1 rounded-md text-sm font-medium">Withdraw</button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                @endif
+                
+                <!-- Tasks Section -->
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Current Tasks</h2>
                 @if(($tasks ?? collect())->count() > 0)
                 <div class="overflow-x-auto">
                     <table class="min-w-full bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
@@ -131,7 +268,7 @@
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
                                 <td class="py-3 px-4">
                                     <div class="font-medium text-gray-900 dark:text-white">{{ $task['title'] }}</div>
-                                    <div class="text-sm text-gray-500 dark:text-gray-400">{{ Str::limit($task['description'], 60) }}</div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">{{ Str::limit($task['description'] ?? 'No description available', 60) }}</div>
                                 </td>
                                 <td class="py-3 px-4">
                                     <div class="flex items-center">
@@ -183,9 +320,23 @@
                                 </td>
                                 <td class="py-3 px-4">
                                     <div class="flex space-x-2">
-                                        <a href="{{ route('jobseeker.workspace', $task['id']) }}" class="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-md text-sm font-medium">
-                                            Work on Task
-                                        </a>
+                                        @if(is_string($task['id']) && strpos($task['id'], 'pending_') === 0)
+                                            <span class="text-gray-600 dark:text-gray-400 text-sm italic">
+                                                Tasks will be assigned soon
+                                            </span>
+                                        @else
+                                            <a href="{{ route('jobseeker.workspace', $task['id']) }}" class="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-md text-sm font-medium">
+                                                Work on Task
+                                            </a>
+                                            <a href="{{ route('messages.task', $task['id']) }}" class="text-blue-600 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200 dark:hover:bg-blue-800 px-3 py-1 rounded-md text-sm font-medium">
+                                                <span class="flex items-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd" />
+                                                    </svg>
+                                                    Messages
+                                                </span>
+                                            </a>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -194,12 +345,14 @@
                     </table>
                 </div>
                 @else
-                <div class="text-center py-8">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                    <p class="mt-4 text-lg text-gray-600 dark:text-gray-400">No active tasks found.</p>
-                    <p class="text-gray-500 dark:text-gray-500">Your active tasks will appear here once you have contracts in progress.</p>
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-8 text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900 mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-medium text-gray-900 dark:text-white mb-2">No Tasks Found</h3>
+                    <p class="text-gray-500 dark:text-gray-400 mb-6">You don't have any active tasks at the moment. Tasks appear here once your job applications are accepted and tasks are assigned to you.</p>
                 </div>
                 @endif
             </div>
