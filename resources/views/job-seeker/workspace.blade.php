@@ -112,6 +112,54 @@
                 
                 <div class="mb-8">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Submit Work</h2>
+                    
+                    <!-- Deadline Reminder -->
+                    @php
+                        $dueDate = \Carbon\Carbon::parse($task['due_date']);
+                        $daysRemaining = $dueDate->diffInDays(now());
+                        $isPast = $dueDate->isPast();
+                    @endphp
+                    
+                    <div class="{{ $isPast ? 'bg-red-50 dark:bg-red-900 border-red-400' : ($daysRemaining <= 2 ? 'bg-yellow-50 dark:bg-yellow-900 border-yellow-400' : 'bg-blue-50 dark:bg-blue-900 border-blue-400') }} border-l-4 p-4 mb-5 rounded">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                @if($isPast)
+                                <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                </svg>
+                                @elseif($daysRemaining <= 2)
+                                <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                                @else
+                                <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                </svg>
+                                @endif
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium {{ $isPast ? 'text-red-800 dark:text-red-200' : ($daysRemaining <= 2 ? 'text-yellow-800 dark:text-yellow-200' : 'text-blue-800 dark:text-blue-200') }}">
+                                    @if($isPast)
+                                        Deadline Passed!
+                                    @elseif($daysRemaining == 0)
+                                        Deadline is today!
+                                    @elseif($daysRemaining == 1)
+                                        Deadline is tomorrow!
+                                    @else
+                                        Deadline Reminder
+                                    @endif
+                                </h3>
+                                <div class="mt-2 text-sm {{ $isPast ? 'text-red-700 dark:text-red-300' : ($daysRemaining <= 2 ? 'text-yellow-700 dark:text-yellow-300' : 'text-blue-700 dark:text-blue-300') }}">
+                                    @if($isPast)
+                                        <p>This task was due on {{ $dueDate->format('M d, Y') }} ({{ $daysRemaining }} days ago). Please complete your submission as soon as possible.</p>
+                                    @else
+                                        <p>This task is due on {{ $dueDate->format('M d, Y') }} ({{ $daysRemaining }} days remaining).</p>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <form action="{{ route('jobseeker.submit-work', $task['id']) }}" method="POST" enctype="multipart/form-data" class="space-y-5">
                         @csrf
                         
@@ -126,18 +174,71 @@
                             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Enter the number of hours you spent on this task.</p>
                         </div>
                         
+                        <!-- Submission Type Selector -->
                         <div>
-                            <label for="work_file" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Upload Work Files (Optional)</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">How would you like to submit your work?</label>
+                            <div class="flex flex-wrap gap-4">
+                                <label class="flex items-center p-3 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                    <input type="radio" name="submission_type" value="file" class="mr-2" checked>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300">File Upload</div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">Upload documents, images, or other files</div>
+                                    </div>
+                                </label>
+                                
+                                <label class="flex items-center p-3 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                    <input type="radio" name="submission_type" value="zip" class="mr-2">
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300">ZIP Archive</div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">Upload a compressed ZIP file</div>
+                                    </div>
+                                </label>
+                                
+                                <label class="flex items-center p-3 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                    <input type="radio" name="submission_type" value="link" class="mr-2">
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300">External Link</div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">Provide a URL to your work</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- File Upload Section (default) -->
+                        <div id="file-upload-section">
+                            <label for="work_file" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Upload Files</label>
                             <div class="mt-1 flex items-center">
                                 <label class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                                         <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                                     </svg>
-                                    Choose file
-                                    <input id="work_file" name="work_file" type="file" class="sr-only">
+                                    Choose files
+                                    <input id="work_file" name="work_file[]" type="file" class="sr-only" multiple>
                                 </label>
                             </div>
                             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Upload completed work files, screenshots, or other deliverables.</p>
+                        </div>
+                        
+                        <!-- ZIP Upload Section (hidden by default) -->
+                        <div id="zip-upload-section" class="hidden">
+                            <label for="zip_file" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Upload ZIP Archive</label>
+                            <div class="mt-1 flex items-center">
+                                <label class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                    Choose ZIP file
+                                    <input id="zip_file" name="zip_file" type="file" class="sr-only" accept=".zip,.rar,.7z">
+                                </label>
+                            </div>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Upload a compressed ZIP file containing all your work files.</p>
+                        </div>
+                        
+                        <!-- External Link Section (hidden by default) -->
+                        <div id="link-section" class="hidden">
+                            <label for="external_link" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">External Link</label>
+                            <input type="url" id="external_link" name="external_link" class="w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" placeholder="https://example.com/your-work">
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Provide a link to your completed work (GitHub, Dropbox, Google Drive, etc.)</p>
                         </div>
                         
                         <div class="flex items-center justify-between pt-4">
@@ -182,3 +283,32 @@
     </div>
 </div>
 @endsection 
+
+@section('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const submissionTypes = document.querySelectorAll('input[name="submission_type"]');
+        const fileSection = document.getElementById('file-upload-section');
+        const zipSection = document.getElementById('zip-upload-section');
+        const linkSection = document.getElementById('link-section');
+        
+        submissionTypes.forEach(type => {
+            type.addEventListener('change', function() {
+                // Hide all sections first
+                fileSection.classList.add('hidden');
+                zipSection.classList.add('hidden');
+                linkSection.classList.add('hidden');
+                
+                // Show the appropriate section
+                if (this.value === 'file') {
+                    fileSection.classList.remove('hidden');
+                } else if (this.value === 'zip') {
+                    zipSection.classList.remove('hidden');
+                } else if (this.value === 'link') {
+                    linkSection.classList.remove('hidden');
+                }
+            });
+        });
+    });
+</script>
+@endsection

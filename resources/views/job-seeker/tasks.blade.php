@@ -66,6 +66,32 @@
         
         <!-- Main Content -->
         <div class="flex-1">
+            <!-- Deadline Reminders Banner -->
+            @if(isset($upcomingDeadlines) && count($upcomingDeadlines) > 0)
+            <div class="bg-yellow-50 dark:bg-yellow-900 border-l-4 border-yellow-400 p-4 mb-6 rounded-lg">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">Upcoming Deadline(s)</h3>
+                        <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                            <ul class="list-disc pl-5 space-y-1">
+                                @foreach($upcomingDeadlines as $deadline)
+                                <li>
+                                    "{{ $deadline['title'] }}" is due in {{ $deadline['days_remaining'] }} days
+                                    <a href="{{ route('jobseeker.workspace', $deadline['id']) }}" class="font-medium underline">View task</a>
+                                </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
                     <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Active Tasks</h1>
@@ -87,6 +113,7 @@
                     </div>
                 </div>
                 
+                @if(count($tasks ?? []) > 0)
                 <div class="overflow-x-auto">
                     <table class="min-w-full bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
                         <thead class="bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 text-sm">
@@ -94,7 +121,6 @@
                                 <th class="py-3 px-4 text-left font-medium">Task</th>
                                 <th class="py-3 px-4 text-left font-medium">Client</th>
                                 <th class="py-3 px-4 text-left font-medium">Status</th>
-                                <th class="py-3 px-4 text-left font-medium">Priority</th>
                                 <th class="py-3 px-4 text-left font-medium">Due Date</th>
                                 <th class="py-3 px-4 text-left font-medium">Progress</th>
                                 <th class="py-3 px-4 text-left font-medium">Actions</th>
@@ -105,8 +131,24 @@
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
                                 <td class="py-3 px-4">
                                     <div class="font-medium text-gray-900 dark:text-white">{{ $task['title'] }}</div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">{{ Str::limit($task['description'], 60) }}</div>
                                 </td>
-                                <td class="py-3 px-4 text-gray-600 dark:text-gray-300">{{ $task['client'] }}</td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-8 w-8">
+                                            @if(isset($task['client_photo']))
+                                                <img class="h-8 w-8 rounded-full" src="{{ asset('storage/' . $task['client_photo']) }}" alt="{{ $task['client'] }}">
+                                            @else
+                                                <div class="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                                                    <span class="text-blue-600 dark:text-blue-300 font-medium text-sm">{{ substr($task['client'], 0, 1) }}</span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div class="ml-3">
+                                            <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $task['client'] }}</div>
+                                        </div>
+                                    </div>
+                                </td>
                                 <td class="py-3 px-4">
                                     @if($task['status'] === 'in-progress')
                                         <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">In Progress</span>
@@ -114,18 +156,25 @@
                                         <span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">Pending</span>
                                     @elseif($task['status'] === 'completed')
                                         <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Completed</span>
+                                    @elseif($task['status'] === 'overdue')
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">Overdue</span>
                                     @endif
                                 </td>
-                                <td class="py-3 px-4">
-                                    @if($task['priority'] === 'high')
-                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">High</span>
-                                    @elseif($task['priority'] === 'medium')
-                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">Medium</span>
-                                    @elseif($task['priority'] === 'low')
-                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Low</span>
-                                    @endif
+                                <td class="py-3 px-4 text-gray-600 dark:text-gray-300">
+                                    <div>{{ \Carbon\Carbon::parse($task['due_date'])->format('M d, Y') }}</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                                        @php
+                                            $daysRemaining = \Carbon\Carbon::parse($task['due_date'])->diffInDays(now());
+                                            $isPast = \Carbon\Carbon::parse($task['due_date'])->isPast();
+                                        @endphp
+                                        
+                                        @if($isPast)
+                                            <span class="text-red-500 dark:text-red-400">Overdue by {{ $daysRemaining }} days</span>
+                                        @else
+                                            {{ $daysRemaining }} days remaining
+                                        @endif
+                                    </div>
                                 </td>
-                                <td class="py-3 px-4 text-gray-600 dark:text-gray-300">{{ $task['due_date'] }}</td>
                                 <td class="py-3 px-4">
                                     <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
                                         <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ $task['progress'] }}%"></div>
@@ -134,10 +183,8 @@
                                 </td>
                                 <td class="py-3 px-4">
                                     <div class="flex space-x-2">
-                                        <a href="{{ route('jobseeker.workspace', $task['id']) }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                            </svg>
+                                        <a href="{{ route('jobseeker.workspace', $task['id']) }}" class="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-md text-sm font-medium">
+                                            Work on Task
                                         </a>
                                     </div>
                                 </td>
@@ -146,8 +193,7 @@
                         </tbody>
                     </table>
                 </div>
-                
-                @if(count($tasks) === 0)
+                @else
                 <div class="text-center py-8">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -158,87 +204,139 @@
                 @endif
             </div>
             
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Task Summary</h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-200">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
-                                </svg>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Task Summary -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Task Summary</h2>
+                    
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-200">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-gray-700 dark:text-gray-200">Total Tasks</h3>
+                                    <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ count($tasks ?? []) }}</p>
+                                </div>
                             </div>
-                            <div class="ml-4">
-                                <h3 class="text-lg font-medium text-gray-700 dark:text-gray-200">Total Tasks</h3>
-                                <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ count($tasks) }}</p>
+                        </div>
+                        
+                        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-yellow-100 dark:bg-yellow-900 text-yellow-600 dark:text-yellow-200">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-gray-700 dark:text-gray-200">In Progress</h3>
+                                    <p class="text-2xl font-semibold text-gray-900 dark:text-white">
+                                        {{ count(array_filter($tasks ?? [], function($task) { return $task['status'] === 'in-progress'; })) }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-200">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-gray-700 dark:text-gray-200">Completed</h3>
+                                    <p class="text-2xl font-semibold text-gray-900 dark:text-white">
+                                        {{ count(array_filter($tasks ?? [], function($task) { return $task['status'] === 'completed'; })) }}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-yellow-100 dark:bg-yellow-900 text-yellow-600 dark:text-yellow-200">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
-                                </svg>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-3">Upcoming Deadlines</h3>
+                    <div class="space-y-3">
+                        @php
+                            $upcomingTasks = isset($tasks) ? collect($tasks)->filter(function($task) {
+                                return \Carbon\Carbon::parse($task['due_date'])->diffInDays(now()) <= 7 && !(\Carbon\Carbon::parse($task['due_date'])->isPast());
+                            })->sortBy(function($task) {
+                                return \Carbon\Carbon::parse($task['due_date']);
+                            })->take(3) : collect([]);
+                        @endphp
+                        
+                        @forelse($upcomingTasks as $task)
+                            <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                <div>
+                                    <h4 class="font-medium text-gray-900 dark:text-white">{{ $task['title'] }}</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ $task['client'] }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white">Due: {{ \Carbon\Carbon::parse($task['due_date'])->format('M d, Y') }}</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                                        @php
+                                            $daysRemaining = \Carbon\Carbon::parse($task['due_date'])->diffInDays(now());
+                                        @endphp
+                                        {{ $daysRemaining }} days remaining
+                                    </p>
+                                </div>
                             </div>
-                            <div class="ml-4">
-                                <h3 class="text-lg font-medium text-gray-700 dark:text-gray-200">In Progress</h3>
-                                <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-                                    {{ count(array_filter($tasks->toArray(), function($task) { return $task['status'] === 'in-progress'; })) }}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-200">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                            <div class="ml-4">
-                                <h3 class="text-lg font-medium text-gray-700 dark:text-gray-200">Completed</h3>
-                                <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-                                    {{ count(array_filter($tasks->toArray(), function($task) { return $task['status'] === 'completed'; })) }}
-                                </p>
-                            </div>
-                        </div>
+                        @empty
+                            <p class="text-gray-500 dark:text-gray-400">No upcoming deadlines in the next 7 days.</p>
+                        @endforelse
                     </div>
                 </div>
                 
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-3">Upcoming Deadlines</h3>
-                <div class="space-y-3">
-                    @php
-                        $upcomingTasks = $tasks->filter(function($task) {
-                            return \Carbon\Carbon::parse($task['due_date'])->diffInDays(now()) <= 7;
-                        })->sortBy(function($task) {
-                            return \Carbon\Carbon::parse($task['due_date']);
-                        })->take(3);
-                    @endphp
+                <!-- Recent Messages -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Recent Messages</h2>
                     
-                    @forelse($upcomingTasks as $task)
-                        <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                            <div>
-                                <h4 class="font-medium text-gray-900 dark:text-white">{{ $task['title'] }}</h4>
-                                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $task['client'] }}</p>
+                    @if(isset($recentMessages) && count($recentMessages) > 0)
+                    <div class="space-y-4">
+                        @foreach($recentMessages as $message)
+                        <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        @if(isset($message['sender_photo']))
+                                            <img class="h-10 w-10 rounded-full" src="{{ asset('storage/' . $message['sender_photo']) }}" alt="{{ $message['sender'] }}">
+                                        @else
+                                            <div class="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                                                <span class="text-blue-600 dark:text-blue-300 font-medium text-lg">{{ substr($message['sender'], 0, 1) }}</span>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="text-sm font-medium text-gray-900 dark:text-white">{{ $message['sender'] }}</h4>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ $message['job_title'] }}</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">{{ \Carbon\Carbon::parse($message['timestamp'])->diffForHumans() }}</span>
                             </div>
-                            <div class="text-right">
-                                <p class="text-sm font-medium text-gray-900 dark:text-white">Due: {{ $task['due_date'] }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">
-                                    @php
-                                        $daysRemaining = \Carbon\Carbon::parse($task['due_date'])->diffInDays(now());
-                                    @endphp
-                                    {{ $daysRemaining }} days remaining
-                                </p>
+                            <p class="text-sm text-gray-700 dark:text-gray-300">
+                                {{ Str::limit($message['content'], 100) }}
+                            </p>
+                            <div class="mt-2">
+                                <a href="#" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">View Conversation</a>
                             </div>
                         </div>
-                    @empty
-                        <p class="text-gray-500 dark:text-gray-400">No upcoming deadlines in the next 7 days.</p>
-                    @endforelse
+                        @endforeach
+                    </div>
+                    <div class="mt-4 text-center">
+                        <a href="#" class="text-blue-600 dark:text-blue-400 hover:underline">View All Messages</a>
+                    </div>
+                    @else
+                    <div class="text-center py-8">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                        </svg>
+                        <p class="mt-4 text-lg text-gray-600 dark:text-gray-400">No messages yet</p>
+                        <p class="text-gray-500 dark:text-gray-500">Messages from clients will appear here.</p>
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>
