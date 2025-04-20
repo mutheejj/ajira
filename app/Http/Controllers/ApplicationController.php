@@ -165,6 +165,62 @@ class ApplicationController extends Controller
         
         $application->save();
         
+        // Create a contract if application is accepted
+        if ($request->status === 'accepted' && $oldStatus !== 'accepted') {
+            // Create a new contract
+            $contract = new \App\Models\Contract();
+            $contract->client_id = $application->jobPost->client_id;
+            $contract->freelancer_id = $application->user_id;
+            $contract->job_post_id = $application->job_post_id;
+            $contract->application_id = $application->id;
+            $contract->amount = $application->bid_amount;
+            $contract->start_date = now();
+            
+            // Calculate end date based on estimated duration
+            $durationParts = explode(' ', $application->estimated_duration);
+            $durationValue = (int) $durationParts[0];
+            $durationType = strtolower($durationParts[1]);
+            
+            if (strpos($durationType, 'day') !== false) {
+                $contract->end_date = now()->addDays($durationValue);
+            } elseif (strpos($durationType, 'week') !== false) {
+                $contract->end_date = now()->addWeeks($durationValue);
+            } elseif (strpos($durationType, 'month') !== false) {
+                $contract->end_date = now()->addMonths($durationValue);
+            } else {
+                // Default to 30 days if duration type is unknown
+                $contract->end_date = now()->addDays(30);
+            }
+            
+            $contract->status = 'active';
+            $contract->save();
+            
+            // Create a task for the job seeker
+            $task = new \App\Models\Task();
+            $task->contract_id = $contract->id;
+            $task->freelancer_id = $application->user_id;
+            $task->title = $application->jobPost->title;
+            $task->description = $application->jobPost->description;
+            $task->status = 'in-progress';
+            $task->due_date = $contract->end_date;
+            $task->progress = 0;
+            $task->save();
+            
+            // Update job post status
+            $jobPost = $application->jobPost;
+            $jobPost->status = 'assigned';
+            $jobPost->save();
+            
+            // Send notification to the freelancer about contract creation
+            try {
+                // You can send an email notification here
+                Mail::to($application->user->email)->send(new \App\Mail\ContractCreatedMail($contract));
+            } catch (\Exception $e) {
+                // Log email error but continue with the process
+                \Log::error('Failed to send contract creation email: ' . $e->getMessage());
+            }
+        }
+        
         // Send status change email to the applicant
         try {
             Mail::to($application->user->email)->send(new ApplicationStatusChangedMail($application, $oldStatus));
