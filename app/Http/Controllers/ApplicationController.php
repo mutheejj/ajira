@@ -78,7 +78,7 @@ class ApplicationController extends Controller
         
         // Validate request
         $request->validate([
-            'cover_letter' => 'required|string|min:100|max:5000',
+            'cover_letter' => 'required|string|min:10|max:5000',
             'bid_amount' => 'required|numeric|min:' . ($jobPost->budget * 0.5) . '|max:' . ($jobPost->budget * 2),
             'estimated_duration' => 'required|string',
             'attachment' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120', // 5MB max
@@ -170,10 +170,12 @@ class ApplicationController extends Controller
             // Create a new contract
             $contract = new \App\Models\Contract();
             $contract->client_id = $application->jobPost->client_id;
-            $contract->freelancer_id = $application->user_id;
-            $contract->job_post_id = $application->job_post_id;
-            $contract->application_id = $application->id;
+            $contract->job_seeker_id = $application->user_id;
+            $contract->job_id = $application->job_post_id;
             $contract->amount = $application->bid_amount;
+            $contract->title = $application->jobPost->title;
+            $contract->description = $application->jobPost->description;
+            $contract->currency = 'USD';
             $contract->start_date = now();
             
             // Calculate end date based on estimated duration
@@ -198,13 +200,21 @@ class ApplicationController extends Controller
             // Create a task for the job seeker
             $task = new \App\Models\Task();
             $task->contract_id = $contract->id;
-            $task->freelancer_id = $application->user_id;
             $task->title = $application->jobPost->title;
             $task->description = $application->jobPost->description;
-            $task->status = 'in-progress';
+            $task->status = 'in_progress'; // Using the correct status from Task::STATUS_CHOICES
+            $task->priority = 'medium';
             $task->due_date = $contract->end_date;
             $task->progress = 0;
             $task->save();
+            
+            // Create an initial welcome message
+            $message = new \App\Models\Message();
+            $message->sender_id = $application->jobPost->client_id;
+            $message->receiver_id = $application->user_id;
+            $message->task_id = $task->id;
+            $message->content = "Welcome to the project! I'm excited to work with you on this task. Feel free to ask any questions.";
+            $message->save();
             
             // Update job post status
             $jobPost = $application->jobPost;

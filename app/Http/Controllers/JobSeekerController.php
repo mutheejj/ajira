@@ -52,6 +52,7 @@ class JobSeekerController extends Controller
                 return [
                     'id' => $task->id,
                     'title' => $task->title,
+                    'description' => $task->description,
                     'client' => $contract->job->client->name,
                     'status' => $task->status,
                     'priority' => $task->priority,
@@ -94,8 +95,39 @@ class JobSeekerController extends Controller
      */
     public function activeTasks()
     {
+        $userId = Auth::id();
+        
+        // Get job applications for the job seeker (from JobApplication model)
+        $jobApplications = JobApplication::where('job_seeker_id', $userId)
+            ->with(['job', 'job.client'])
+            ->get();
+            
+        // Also check for applications from the Application model
+        $standardApplications = collect();
+        if (class_exists(\App\Models\Application::class)) {
+            $standardApplications = \App\Models\Application::where('user_id', $userId)
+                ->with(['jobPost', 'jobPost.client'])
+                ->get()
+                ->map(function($application) {
+                    // Transform to match JobApplication structure as an array instead of stdClass
+                    return [
+                        'id' => $application->id,
+                        'job_id' => $application->job_post_id,
+                        'job_seeker_id' => $application->user_id,
+                        'status' => $application->status,
+                        'created_at' => $application->created_at,
+                        'cover_letter' => $application->cover_letter,
+                        'job' => $application->jobPost,
+                        'client' => $application->jobPost->client ?? null,
+                    ];
+                });
+        }
+        
+        // Combine both types of applications using concat instead of merge
+        $applications = $jobApplications->concat($standardApplications);
+
         // Get actual tasks from the database
-        $contracts = Contract::where('job_seeker_id', Auth::id())
+        $contracts = Contract::where('job_seeker_id', $userId)
             ->with(['job', 'job.client', 'tasks'])
             ->get();
             
@@ -106,6 +138,7 @@ class JobSeekerController extends Controller
                 return [
                     'id' => $task->id,
                     'title' => $task->title,
+                    'description' => $task->description,
                     'client' => $contract->job->client->name,
                     'status' => $task->status,
                     'priority' => $task->priority,
@@ -117,10 +150,7 @@ class JobSeekerController extends Controller
             $tasks = $tasks->concat($contractTasks);
         }
         
-        // If no tasks found, provide placeholder data for UI display
-        // REMOVED PLACEHOLDER LOGIC
-        
-        return view('job-seeker.tasks', compact('tasks'));
+        return view('job-seeker.tasks', compact('tasks', 'applications'));
     }
     
     /**

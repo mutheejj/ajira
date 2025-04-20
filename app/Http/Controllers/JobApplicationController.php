@@ -212,7 +212,50 @@ class JobApplicationController extends Controller
         ]);
 
         try {
+            $oldStatus = $application->status;
             $application->updateStatus($validated['status']);
+            
+            // If application is being accepted, create a contract and task
+            if ($validated['status'] === 'accepted' && $oldStatus !== 'accepted') {
+                // Create a new contract
+                $contract = new \App\Models\Contract();
+                $contract->client_id = $application->job->client_id;
+                $contract->job_seeker_id = $application->job_seeker_id;
+                $contract->job_id = $application->job_id;
+                $contract->title = $application->job->title;
+                $contract->description = $application->job->description;
+                $contract->amount = $application->job->budget;
+                $contract->currency = 'USD'; // Default currency
+                $contract->status = 'in_progress';
+                $contract->start_date = now();
+                $contract->end_date = now()->addDays(30); // Default 30 days
+                $contract->save();
+                
+                // Create a task for the job seeker
+                $task = new \App\Models\Task();
+                $task->contract_id = $contract->id;
+                $task->title = $application->job->title;
+                $task->description = $application->job->description;
+                $task->status = 'in_progress';
+                $task->priority = 'medium';
+                $task->due_date = $contract->end_date;
+                $task->progress = 0;
+                $task->save();
+                
+                // Create an initial welcome message
+                $message = new \App\Models\Message();
+                $message->sender_id = $application->job->client_id;
+                $message->receiver_id = $application->job_seeker_id;
+                $message->task_id = $task->id;
+                $message->content = "Welcome to the project! I'm excited to work with you on this task. Feel free to ask any questions.";
+                $message->save();
+                
+                // Update job post status
+                $jobPost = $application->job;
+                $jobPost->status = 'assigned';
+                $jobPost->save();
+            }
+            
             return redirect()->route('applications.show', $application->id)
                 ->with('success', 'Application status updated successfully.');
         } catch (\Exception $e) {
