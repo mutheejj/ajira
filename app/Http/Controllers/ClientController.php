@@ -9,6 +9,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Message;
+use App\Models\Task;
+use App\Models\Submission;
 
 class ClientController extends Controller
 {
@@ -376,7 +379,7 @@ class ClientController extends Controller
     }
     
     /**
-     * Display active contracts for the client.
+     * Display client's active contracts.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
@@ -385,10 +388,162 @@ class ClientController extends Controller
     {
         $user = auth()->user();
         
-        // This is a placeholder - replace with actual contract logic when implemented
-        $contracts = [];
+        // Get all contracts for this client with related job, job seeker, and tasks
+        $query = \App\Models\Contract::where('client_id', $user->id)
+                ->with(['job', 'jobSeeker', 'tasks']);
         
-        return view('client.active-contracts', compact('contracts'));
+        // Apply filters if needed
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+        
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhereHas('jobSeeker', function($q2) use ($search) {
+                      $q2->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+        
+        // Get contracts
+        $activeContracts = $query->paginate(10);
+        
+        return view('client.active-contracts', compact('activeContracts'));
+    }
+    
+    /**
+     * Display a specific task with messages and allow sending instructions.
+     *
+     * @param  int  $taskId
+     * @return \Illuminate\Http\Response
+     */
+    public function viewTask($taskId)
+    {
+        $user = auth()->user();
+        
+        // Get the task with related contract, job seeker, and submissions
+        $task = \App\Models\Task::with([
+            'contract', 
+            'contract.jobSeeker', 
+            'submissions' => function($query) {
+                $query->orderBy('created_at', 'desc');
+            }
+        ])->findOrFail($taskId);
+        
+        // Ensure the client owns this task
+        if ($task->contract->client_id !== $user->id) {
+            return redirect()->route('client.active-contracts')
+                ->with('error', 'You are not authorized to view this task.');
+        }
+        
+        // Get messages for the task
+        $messages = \App\Models\Message::where('task_id', $taskId)
+            ->with(['sender', 'receiver'])
+            ->orderBy('created_at', 'asc')
+            ->get();
+            
+        // Mark unread messages as read
+        \App\Models\Message::where('task_id', $taskId)
+            ->where('receiver_id', $user->id)
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+        
+        // Get freelancer/job seeker information
+        $jobSeeker = $task->contract->jobSeeker;
+        
+        return view('client.task-details', [
+            'task' => $task,
+            'messages' => $messages,
+            'jobSeeker' => $jobSeeker
+        ]);
+    }
+    
+    /**
+     * Send a message for a task.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $taskId
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function sendMessage(Request $request, $taskId)
+    {
+        $request->validate([
+            'message' => 'required|string|max:1000',
+        ]);
+
+        $task = Task::findOrFail($taskId);
+        
+        // Ensure the client owns this task
+        if ($task->contract->client_id != auth()->id()) {
+            return redirect()->back()->with('error', 'You do not have permission to send messages for this task.');
+        }
+
+        // Create a new message
+        Message::create([
+            'sender_id' => auth()->id(),
+            'receiver_id' => $task->contract->job_seeker_id,
+            'task_id' => $task->id,
+            'content' => $request->message,
+            'is_read' => false,
+        ]);
+
+        return redirect()->back()->with('success', 'Message sent successfully.');
+    }
+    
+    /**
+     * Send task instructions with optional attachment.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $taskId
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function sendTaskInstructions(Request $request, $taskId)
+    {
+        $request->validate([
+            'instructions' => 'required|string|max:5000',
+            'attachment' => 'nullable|file|max:10240', // 10MB max file size
+        ]);
+
+        $task = Task::findOrFail($taskId);
+        
+        // Ensure the client owns this task
+        if ($task->contract->client_id != auth()->id()) {
+            return redirect()->back()->with('error', 'You do not have permission to update this task.');
+        }
+
+        // Update task instructions
+        $task->instructions = $request->instructions;
+        
+        // Handle file upload if provided
+        if ($request->hasFile('attachment')) {
+            // Delete old attachment if exists
+            if ($task->attachment_path) {
+                Storage::disk('public')->delete($task->attachment_path);
+            }
+            
+            $file = $request->file('attachment');
+            $fileName = $file->getClientOriginalName();
+            $filePath = $file->store('task-attachments', 'public');
+            
+            $task->attachment_path = $filePath;
+            $task->attachment_name = $fileName;
+        }
+        
+        $task->save();
+        
+        // Create a new message to notify the job seeker
+        Message::create([
+            'sender_id' => auth()->id(),
+            'receiver_id' => $task->contract->job_seeker_id,
+            'task_id' => $task->id,
+            'content' => 'I\'ve updated the task instructions. Please check the task details.',
+            'is_read' => false,
+        ]);
+
+        return redirect()->back()->with('success', 'Task instructions updated successfully.');
     }
     
     /**
@@ -420,6 +575,105 @@ class ClientController extends Controller
         $reports = [];
         
         return view('client.reports', compact('reports'));
+    }
+    
+    /**
+     * Display the task details for a specific task.
+     *
+     * @param int $taskId
+     * @return \Illuminate\Http\Response
+     */
+    public function taskDetails($taskId)
+    {
+        $client = auth()->user();
+        
+        // Get the task with relationships
+        $task = Task::where('id', $taskId)
+            ->where('client_id', $client->id)
+            ->with(['jobSeeker', 'attachments'])
+            ->firstOrFail();
+        
+        // Get submissions for this task
+        $submissions = Submission::where('task_id', $task->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        // Get messages for this task
+        $messages = Message::where(function($query) use ($client, $task) {
+            $query->where('sender_id', $client->id)
+                  ->where('receiver_id', $task->job_seeker_id)
+                  ->where('task_id', $task->id);
+        })->orWhere(function($query) use ($client, $task) {
+            $query->where('sender_id', $task->job_seeker_id)
+                  ->where('receiver_id', $client->id)
+                  ->where('task_id', $task->id);
+        })
+        ->orderBy('created_at')
+        ->get();
+        
+        // Get job seeker information
+        $jobSeeker = $task->jobSeeker;
+        
+        return view('client.task-details', compact('task', 'submissions', 'messages', 'jobSeeker'));
+    }
+    
+    /**
+     * Submit feedback for a submission.
+     *
+     * @param Request $request
+     * @param int $submissionId
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function submitFeedback(Request $request, $submissionId)
+    {
+        $request->validate([
+            'feedback' => 'required|string|max:1000',
+            'status' => 'required|in:approved,rejected,pending',
+        ]);
+        
+        $client = auth()->user();
+        
+        // Get the submission
+        $submission = Submission::with(['task' => function($query) use ($client) {
+            $query->where('client_id', $client->id);
+        }])->findOrFail($submissionId);
+        
+        // Check if the submission belongs to the client's task
+        if (!$submission->task || $submission->task->client_id !== $client->id) {
+            return redirect()->route('client.tasks')
+                ->with('error', 'Unauthorized access to submission.');
+        }
+        
+        // Update the submission
+        $submission->status = $request->status;
+        $submission->feedback = $request->feedback;
+        $submission->feedback_at = now();
+        $submission->save();
+        
+        // If the submission is approved and this is the latest submission, mark the task as completed
+        if ($request->status === 'approved') {
+            $latestSubmission = Submission::where('task_id', $submission->task_id)
+                ->orderBy('created_at', 'desc')
+                ->first();
+                
+            if ($latestSubmission->id === $submission->id) {
+                $submission->task->status = 'completed';
+                $submission->task->progress = 100;
+                $submission->task->save();
+            }
+        }
+        
+        // Send notification to job seeker
+        try {
+            $jobSeeker = User::find($submission->task->job_seeker_id);
+            if ($jobSeeker) {
+                \Mail::to($jobSeeker->email)->send(new \App\Mail\SubmissionFeedbackMail($submission, $jobSeeker, $client));
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to send submission feedback email: ' . $e->getMessage());
+        }
+        
+        return redirect()->back()->with('success', 'Feedback submitted successfully.');
     }
     
     /**
@@ -604,4 +858,265 @@ class ClientController extends Controller
             'Biotechnology', 'Pharmaceuticals', 'Food & Beverage'
         ];
     }
-} 
+
+    /**
+     * Display client's tasks.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function tasks(Request $request)
+    {
+        $user = auth()->user();
+        
+        // Prepare query with filters
+        $query = Task::where('client_id', $user->id);
+        
+        // Apply filters
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        
+        if ($request->filled('priority')) {
+            $query->where('priority', $request->priority);
+        }
+        
+        // Apply sorting
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortDir = $request->get('sort_dir', 'desc');
+        
+        $allowedSortFields = ['created_at', 'title', 'due_date', 'priority', 'status'];
+        if (!in_array($sortBy, $allowedSortFields)) {
+            $sortBy = 'created_at';
+        }
+        
+        $query->orderBy($sortBy, $sortDir);
+        
+        // Get tasks with relationships including submissions and messages
+        $tasks = $query->with([
+            'contract', 
+            'contract.jobSeeker', 
+            'jobSeeker', 
+            'submissions', 
+            'messages'
+        ])->paginate(10);
+        
+        // Get status counts for filters and statistics
+        $statusCounts = [
+            'all' => Task::where('client_id', $user->id)->count(),
+            'pending' => Task::where('client_id', $user->id)->where('status', 'pending')->count(),
+            'in_progress' => Task::where('client_id', $user->id)->where('status', 'in_progress')->count(),
+            'completed' => Task::where('client_id', $user->id)->where('status', 'completed')->count(),
+        ];
+        
+        // Prepare task statistics for the dashboard
+        $taskStats = [
+            'total' => $statusCounts['all'],
+            'pending' => $statusCounts['pending'],
+            'in_progress' => $statusCounts['in_progress'],
+            'completed' => $statusCounts['completed'],
+            'cancelled' => Task::where('client_id', $user->id)->where('status', 'cancelled')->count(),
+        ];
+        
+        // Get job seekers who have accepted applications for this client's job posts
+        $jobSeekers = User::whereHas('applications', function($query) use ($user) {
+            $query->where('status', 'accepted')
+                  ->whereHas('jobPost', function($q) use ($user) {
+                      $q->where('client_id', $user->id);
+                  });
+        })->get();
+        
+        return view('client.tasks', compact('tasks', 'statusCounts', 'taskStats', 'jobSeekers', 'user'));
+    }
+    
+    /**
+     * Create a new task.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function createTask(Request $request)
+    {
+        $request->validate([
+            'job_seeker_id' => 'required|exists:users,id',
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'due_date' => 'required|date|after_or_equal:today',
+            'priority' => 'required|in:low,medium,high',
+            'payment' => 'required|numeric|min:1',
+            'contract_id' => 'nullable|exists:contracts,id',
+            'attachments.*' => 'nullable|file|max:10240', // 10MB limit per file
+        ]);
+        
+        $client = auth()->user();
+        $jobSeeker = User::findOrFail($request->job_seeker_id);
+        
+        // Create the task
+        $task = new Task();
+        $task->client_id = $client->id;
+        $task->job_seeker_id = $jobSeeker->id;
+        
+        // Set contract_id if provided
+        if ($request->filled('contract_id') && $request->contract_id != 'null') {
+            // Verify the contract belongs to this client and the job seeker
+            $contract = \App\Models\Contract::where('id', $request->contract_id)
+                ->where('client_id', $client->id)
+                ->first();
+                
+            if ($contract) {
+                $task->contract_id = $contract->id;
+            } else {
+                // If no valid contract is found, create a default one
+                
+                // First, find a job post that this job seeker has applied to and been accepted for
+                $application = \App\Models\Application::where('user_id', $jobSeeker->id)
+                    ->where('status', 'accepted')
+                    ->whereHas('jobPost', function($q) use ($client) {
+                        $q->where('client_id', $client->id);
+                    })
+                    ->with('jobPost')
+                    ->first();
+                    
+                if (!$application) {
+                    // If no application is found, create a dummy job post
+                    $jobPost = new \App\Models\JobPost();
+                    $jobPost->client_id = $client->id;
+                    $jobPost->title = "Job for " . $request->title;
+                    $jobPost->description = "Automatically created job for task: " . $request->title;
+                    $jobPost->category = "Other";
+                    $jobPost->skills = json_encode(["Other"]);
+                    $jobPost->budget = $request->payment;
+                    $jobPost->currency = "USD";
+                    $jobPost->rate_type = "fixed";
+                    $jobPost->job_type = "one-time";
+                    $jobPost->experience_level = "intermediate";
+                    $jobPost->location_type = "remote";
+                    $jobPost->status = "active";
+                    $jobPost->save();
+                    
+                    // Create an application for this job post
+                    $application = new \App\Models\Application();
+                    $application->job_post_id = $jobPost->id;
+                    $application->user_id = $jobSeeker->id;
+                    $application->cover_letter = "Automatically created application for task: " . $request->title;
+                    $application->bid_amount = $request->payment;
+                    $application->status = "accepted";
+                    $application->save();
+                    
+                    $jobId = $jobPost->id;
+                } else {
+                    $jobId = $application->jobPost->id;
+                }
+                
+                $contract = new \App\Models\Contract();
+                $contract->job_id = $jobId;
+                $contract->client_id = $client->id;
+                $contract->job_seeker_id = $jobSeeker->id;
+                $contract->title = "Contract for " . $request->title;
+                $contract->description = "Automatically created contract for task: " . $request->title;
+                $contract->amount = $request->payment;
+                $contract->currency = "USD";
+                $contract->status = 'pending';
+                $contract->start_date = now();
+                $contract->end_date = $request->due_date;
+                $contract->payment_terms = "Fixed payment";
+                $contract->payment_schedule = "One-time payment";
+                $contract->save();
+                
+                $task->contract_id = $contract->id;
+            }
+        } else {
+            // If no contract_id is provided, create a default one
+            
+            // First, find a job post that this job seeker has applied to and been accepted for
+            $application = \App\Models\Application::where('user_id', $jobSeeker->id)
+                ->where('status', 'accepted')
+                ->whereHas('jobPost', function($q) use ($client) {
+                    $q->where('client_id', $client->id);
+                })
+                ->with('jobPost')
+                ->first();
+                
+            if (!$application) {
+                // If no application is found, create a dummy job post
+                $jobPost = new \App\Models\JobPost();
+                $jobPost->client_id = $client->id;
+                $jobPost->title = "Job for " . $request->title;
+                $jobPost->description = "Automatically created job for task: " . $request->title;
+                $jobPost->category = "Other";
+                $jobPost->skills = json_encode(["Other"]);
+                $jobPost->budget = $request->payment;
+                $jobPost->currency = "USD";
+                $jobPost->rate_type = "fixed";
+                $jobPost->job_type = "one-time";
+                $jobPost->experience_level = "intermediate";
+                $jobPost->location_type = "remote";
+                $jobPost->status = "active";
+                $jobPost->save();
+                
+                // Create an application for this job post
+                $application = new \App\Models\Application();
+                $application->job_post_id = $jobPost->id;
+                $application->user_id = $jobSeeker->id;
+                $application->cover_letter = "Automatically created application for task: " . $request->title;
+                $application->bid_amount = $request->payment;
+                $application->status = "accepted";
+                $application->save();
+                
+                $jobId = $jobPost->id;
+            } else {
+                $jobId = $application->jobPost->id;
+            }
+            
+            $contract = new \App\Models\Contract();
+            $contract->job_id = $jobId;
+            $contract->client_id = $client->id;
+            $contract->job_seeker_id = $jobSeeker->id;
+            $contract->title = "Contract for " . $request->title;
+            $contract->description = "Automatically created contract for task: " . $request->title;
+            $contract->amount = $request->payment;
+            $contract->currency = "USD";
+            $contract->status = 'pending';
+            $contract->start_date = now();
+            $contract->end_date = $request->due_date;
+            $contract->payment_terms = "Fixed payment";
+            $contract->payment_schedule = "One-time payment";
+            $contract->save();
+            
+            $task->contract_id = $contract->id;
+        }
+        
+        $task->title = $request->title;
+        $task->description = $request->description;
+        $task->due_date = $request->due_date;
+        $task->priority = $request->priority;
+        $task->status = 'pending';
+        $task->payment = $request->payment;
+        $task->save();
+        
+        // Handle file attachments
+        if ($request->hasFile('attachments')) {
+            $attachments = [];
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('task_attachments/' . $task->id, 'public');
+                
+                $attachment = new \App\Models\TaskAttachment();
+                $attachment->task_id = $task->id;
+                $attachment->file_name = $file->getClientOriginalName();
+                $attachment->file_path = $path;
+                $attachment->file_size = $file->getSize();
+                $attachment->save();
+            }
+        }
+        
+        // Send email notification to the job seeker
+        try {
+            \Mail::to($jobSeeker->email)->send(new \App\Mail\TaskAssignedMail($task, $client, $jobSeeker));
+        } catch (\Exception $e) {
+            \Log::error('Failed to send task assignment email: ' . $e->getMessage());
+        }
+        
+        return redirect()->route('client.tasks')
+            ->with('success', 'Task created successfully and notification sent to ' . $jobSeeker->name);
+    }
+}

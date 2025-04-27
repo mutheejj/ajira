@@ -5,9 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Wallet;
 use App\Models\Transaction;
+use App\Models\Task;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class WalletController extends Controller
 {
@@ -28,16 +32,8 @@ class WalletController extends Controller
      */
     public function index()
     {
-        $user = Auth::user();
-        
-        // Get or create wallet for user
-        $wallet = Wallet::firstOrCreate(
-            ['user_id' => $user->id],
-            ['balance' => 0.00]
-        );
-        
-        // Get recent transactions
-        $recentTransactions = Transaction::where('wallet_id', $wallet->id)
+        $wallet = $this->getOrCreateWallet();
+        $transactions = Transaction::where('wallet_id', $wallet->id)
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
@@ -55,13 +51,14 @@ class WalletController extends Controller
             ->sum('amount');
             
         // Get user's role for conditional display
+        $user = Auth::user();
         $isClient = $user->is_client;
         $isJobSeeker = $user->isJobSeeker();
         $isAdmin = $user->is_admin;
         
         return view('wallet.index', compact(
             'wallet', 
-            'recentTransactions', 
+            'transactions', 
             'monthlyIncome', 
             'pendingWithdrawals',
             'isClient',
@@ -78,19 +75,21 @@ class WalletController extends Controller
      */
     public function transactions(Request $request)
     {
-        $user = Auth::user();
-        $wallet = Wallet::where('user_id', $user->id)->firstOrFail();
+        $wallet = $this->getOrCreateWallet();
         
         $query = Transaction::where('wallet_id', $wallet->id);
         
-        // Filter by transaction type
-        if ($request->has('type') && $request->type !== 'all') {
+        // Apply filters
+        if ($request->filled('type')) {
             $query->where('type', $request->type);
         }
         
-        // Filter by date range
-        if ($request->has('from_date') && $request->has('to_date')) {
-            $query->whereBetween('created_at', [$request->from_date, $request->to_date]);
+        if ($request->filled('from_date')) {
+            $query->whereDate('created_at', '>=', $request->from_date);
+        }
+        
+        if ($request->filled('to_date')) {
+            $query->whereDate('created_at', '<=', $request->to_date);
         }
         
         $transactions = $query->orderBy('created_at', 'desc')
@@ -100,125 +99,252 @@ class WalletController extends Controller
     }
     
     /**
-     * Process a deposit request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
+     * Show deposit form
      */
-    public function deposit(Request $request)
+    public function showDepositForm()
+    {
+        $wallet = $this->getOrCreateWallet();
+        return view('wallet.deposit', compact('wallet'));
+    }
+    
+    /**
+     * Process deposit
+     */
+    public function processDeposit(Request $request)
     {
         $request->validate([
-            'amount' => 'required|numeric|min:10|max:10000',
-            'payment_method' => 'required|string|in:credit_card,paypal,bank_transfer',
+            'amount' => 'required|numeric|min:1',
+            'payment_method' => 'required|in:card,bank,ussd',
+            'currency' => 'required|in:USD,KSH',
         ]);
         
-        $user = Auth::user();
-        $wallet = Wallet::where('user_id', $user->id)->firstOrFail();
+        // For demo, we'll just add the money directly
+        // In a real application, you would integrate with a payment gateway
+        
+        $wallet = $this->getOrCreateWallet();
+        $amount = $request->amount;
+        $currency = $request->currency;
+        
+        DB::beginTransaction();
         
         try {
-            DB::beginTransaction();
-            
-            // In a real app, you would process the payment through a payment gateway here
-            // For demo purposes, we'll just create the transaction
+            // Update wallet balance based on currency
+            if ($currency == 'USD') {
+                $oldBalance = $wallet->usd_balance;
+                $wallet->usd_balance += $amount;
+            } else if ($currency == 'KSH') {
+                $oldBalance = $wallet->ksh_balance;
+                $wallet->ksh_balance += $amount;
+            }
+            $wallet->save();
             
             // Create transaction record
-            $transaction = new Transaction();
-            $transaction->wallet_id = $wallet->id;
-            $transaction->amount = $request->amount;
-            $transaction->type = 'deposit';
-            $transaction->status = 'completed'; // Auto-complete for demo
-            $transaction->description = 'Deposit via ' . ucfirst(str_replace('_', ' ', $request->payment_method));
-            $transaction->reference = 'DEP-' . time();
-            $transaction->save();
-            
-            // Update wallet balance
-            $wallet->balance += $request->amount;
-            $wallet->save();
+            Transaction::create([
+                'wallet_id' => $wallet->id,
+                'amount' => $amount,
+                'type' => 'deposit',
+                'description' => 'Funds deposit',
+                'reference' => 'DEP-' . Str::random(10),
+                'status' => 'completed',
+                'currency' => $currency,
+                'meta' => json_encode([
+                    'payment_method' => $request->payment_method
+                ])
+            ]);
             
             DB::commit();
             
+            $formattedAmount = $currency == 'USD' ? '$' . number_format($amount, 2) : 'KSh' . number_format($amount, 2);
             return redirect()->route('wallet.index')
-                ->with('success', 'Deposit of $' . number_format($request->amount, 2) . ' was successful.');
+                ->with('success', "{$formattedAmount} has been successfully added to your wallet");
                 
         } catch (\Exception $e) {
-            DB::rollBack();
-            
-            return redirect()->route('wallet.index')
-                ->with('error', 'An error occurred while processing your deposit. Please try again.');
+            DB::rollback();
+            return back()->with('error', 'Failed to process your deposit: ' . $e->getMessage());
         }
     }
     
     /**
-     * Process a withdrawal request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
+     * Show withdrawal form
      */
-    public function withdraw(Request $request)
+    public function showWithdrawForm()
     {
-        $user = Auth::user();
-        $wallet = Wallet::where('user_id', $user->id)->firstOrFail();
+        $wallet = $this->getOrCreateWallet();
+        return view('wallet.withdraw', compact('wallet'));
+    }
+    
+    /**
+     * Process withdrawal
+     */
+    public function processWithdrawal(Request $request)
+    {
+        $wallet = $this->getOrCreateWallet();
         
-        // Validate common fields
-        $validationRules = [
-            'amount' => 'required|numeric|min:10|max:' . $wallet->balance,
-            'withdrawal_method' => 'required|string|in:bank_account,paypal,mpesa,wise,payoneer,skrill,western_union',
-        ];
+        $request->validate([
+            'amount' => 'required|numeric|min:5',
+            'bank_name' => 'required|string',
+            'account_number' => 'required|string|size:10',
+            'account_name' => 'required|string',
+            'currency' => 'required|in:USD,KSH',
+        ]);
         
-        // Add specific validation rules based on the withdrawal method
-        if ($request->withdrawal_method === 'mpesa') {
-            $validationRules['mpesa_phone'] = 'required|regex:/^(254)[0-9]{9}$/';
-            $validationRules['account_details'] = 'nullable|string|max:255';
-        } else {
-            $validationRules['account_details'] = 'required|string|max:255';
+        $amount = $request->amount;
+        $currency = $request->currency;
+        
+        // Validate sufficient balance based on currency
+        if ($currency == 'USD' && $wallet->usd_balance < $amount) {
+            return back()->with('error', 'Insufficient USD balance for withdrawal.');
+        } else if ($currency == 'KSH' && $wallet->ksh_balance < $amount) {
+            return back()->with('error', 'Insufficient KSH balance for withdrawal.');
         }
         
-        $request->validate($validationRules);
+        DB::beginTransaction();
         
         try {
-            DB::beginTransaction();
-            
-            // Prepare metadata based on withdrawal method
-            $metaData = [
-                'method' => $request->withdrawal_method
-            ];
-            
-            if ($request->withdrawal_method === 'mpesa') {
-                $metaData['phone_number'] = $request->mpesa_phone;
-                $metaData['notes'] = $request->account_details;
-            } else {
-                $metaData['account_details'] = $request->account_details;
+            // Update wallet balance based on currency
+            if ($currency == 'USD') {
+                $oldBalance = $wallet->usd_balance;
+                $wallet->usd_balance -= $amount;
+            } else if ($currency == 'KSH') {
+                $oldBalance = $wallet->ksh_balance;
+                $wallet->ksh_balance -= $amount;
             }
-            
-            // Create transaction record
-            $transaction = new Transaction();
-            $transaction->wallet_id = $wallet->id;
-            $transaction->amount = $request->amount;
-            $transaction->type = 'withdrawal';
-            $transaction->status = 'pending'; // Pending until admin approval or processing
-            $transaction->description = 'Withdrawal via ' . ucfirst(str_replace('_', ' ', $request->withdrawal_method));
-            $transaction->reference = 'WIT-' . time();
-            $transaction->meta = json_encode($metaData);
-            $transaction->save();
-            
-            // Update wallet balance (reserved amount)
-            $wallet->reserved_balance += $request->amount;
             $wallet->save();
             
-            // If MPesa selected, we could initiate the MPesa withdrawal here
-            // This would involve calling the Daraja API
-            // For simplicity, we're just setting up the transaction now
+            // Create transaction record
+            Transaction::create([
+                'wallet_id' => $wallet->id,
+                'amount' => $amount,
+                'type' => 'withdrawal',
+                'description' => 'Funds withdrawal to bank account',
+                'reference' => 'WTH-' . Str::random(10),
+                'status' => 'completed',
+                'currency' => $currency,
+                'meta' => json_encode([
+                    'bank_name' => $request->bank_name,
+                    'account_number' => $request->account_number,
+                    'account_name' => $request->account_name
+                ])
+            ]);
             
             DB::commit();
             
+            $formattedAmount = $currency == 'USD' ? '$' . number_format($amount, 2) : 'KSh' . number_format($amount, 2);
             return redirect()->route('wallet.index')
-                ->with('success', 'Withdrawal request of $' . number_format($request->amount, 2) . ' has been submitted and is pending processing.');
+                ->with('success', "{$formattedAmount} has been successfully withdrawn from your wallet");
                 
         } catch (\Exception $e) {
-            DB::rollBack();
-            
-            return redirect()->route('wallet.index')
-                ->with('error', 'An error occurred while processing your withdrawal request. Please try again. ' . $e->getMessage());
+            DB::rollback();
+            return back()->with('error', 'Failed to process your withdrawal: ' . $e->getMessage());
         }
+    }
+    
+    /**
+     * Process payment for a task
+     */
+    public function processTaskPayment(Request $request, Task $task)
+    {
+        $user = Auth::user();
+        
+        if (!$user->is_client) {
+            return back()->with('error', 'Only clients can make payments.');
+        }
+        
+        if ($task->client_id !== $user->id) {
+            return back()->with('error', 'You are not authorized to make payment for this task.');
+        }
+        
+        if (!in_array($task->status, [Task::STATUS_COMPLETED, Task::STATUS_SUBMITTED])) {
+            return back()->with('error', 'Payment can only be made for completed tasks.');
+        }
+        
+        $amount = $task->budget;
+        $wallet = $this->getOrCreateWallet();
+        
+        if ($wallet->usd_balance < $amount) {
+            return back()->with('error', 'Insufficient funds in your wallet. Please deposit more funds.');
+        }
+        
+        DB::beginTransaction();
+        
+        try {
+            // Deduct from client's wallet
+            $wallet->usd_balance -= $amount;
+            $wallet->save();
+            
+            // Record the payment transaction
+            Transaction::create([
+                'wallet_id' => $wallet->id,
+                'amount' => $amount,
+                'type' => 'payment',
+                'description' => "Payment for task: {$task->title}",
+                'reference' => 'PAY-' . Str::random(10),
+                'status' => 'completed',
+                'currency' => 'USD',
+                'meta' => json_encode([
+                    'task_id' => $task->id,
+                    'task_title' => $task->title,
+                    'recipient_id' => $task->assigned_to
+                ])
+            ]);
+            
+            // Add to job seeker's wallet
+            $jobSeekerWallet = Wallet::firstOrCreate(
+                ['user_id' => $task->assigned_to],
+                ['usd_balance' => 0]
+            );
+            
+            $oldJobSeekerBalance = $jobSeekerWallet->usd_balance;
+            $jobSeekerWallet->usd_balance += $amount;
+            $jobSeekerWallet->save();
+            
+            // Record the received transaction for job seeker
+            Transaction::create([
+                'wallet_id' => $jobSeekerWallet->id,
+                'amount' => $amount,
+                'type' => 'received',
+                'description' => "Payment received for task: {$task->title}",
+                'reference' => 'REC-' . Str::random(10),
+                'status' => 'completed',
+                'currency' => 'USD',
+                'meta' => json_encode([
+                    'task_id' => $task->id,
+                    'task_title' => $task->title,
+                    'sender_id' => $user->id
+                ])
+            ]);
+            
+            // Update task status to paid
+            $task->status = Task::STATUS_PAID;
+            $task->save();
+            
+            DB::commit();
+            
+            return back()->with('success', "Payment of $" . number_format($amount, 2) . " has been successfully made for this task.");
+            
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->with('error', 'Failed to process payment: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Get the authenticated user's wallet or create it if it doesn't exist
+     */
+    private function getOrCreateWallet()
+    {
+        $userId = Auth::id();
+        
+        $wallet = Wallet::firstOrCreate(
+            ['user_id' => $userId],
+            [
+                'balance' => 0,
+                'currency' => 'USD',
+                'usd_balance' => 200,  // Default starting balance for new wallets
+                'ksh_balance' => 0
+            ]
+        );
+        
+        return $wallet;
     }
 } 

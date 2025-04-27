@@ -189,7 +189,7 @@ class HomeController extends Controller
         if (class_exists(\App\Models\Contract::class)) {
             // Get active tasks
             $contracts = \App\Models\Contract::where('job_seeker_id', $user->id)
-                ->with(['jobPost', 'jobPost.client', 'tasks']) // Use jobPost relation
+                ->with(['job', 'job.client', 'tasks']) // Use job relation instead of jobPost
                 ->get();
                 
             foreach ($contracts as $contract) {
@@ -197,7 +197,7 @@ class HomeController extends Controller
                     return [
                         'id' => $task->id,
                         'title' => $task->title,
-                        'client' => $contract->jobPost->client->name, // Access client via jobPost
+                        'client' => $contract->job->client->name, // Access client via job instead of jobPost
                         'status' => $task->status,
                         'priority' => $task->priority,
                         'due_date' => $task->due_date,

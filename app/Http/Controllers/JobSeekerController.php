@@ -10,6 +10,8 @@ use App\Models\Task;
 use App\Models\WorkLog;
 use App\Models\Contract;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Message;
+use App\Models\Submission;
 
 class JobSeekerController extends Controller
 {
@@ -148,6 +150,41 @@ class JobSeekerController extends Controller
             });
             
             $tasks = $tasks->concat($contractTasks);
+        }
+        
+        // For accepted applications without a contract yet, create placeholder tasks
+        foreach ($applications as $application) {
+            $applicationStatus = is_object($application) ? $application->status : $application['status'];
+            
+            if ($applicationStatus === 'accepted') {
+                // Check if this job already has a contract with tasks
+                $jobId = is_object($application) ? ($application->job_id ?? $application->job->id) : ($application['job_id'] ?? $application['job']->id);
+                
+                // Check if this job already has tasks in the $tasks collection
+                $hasExistingTasks = $contracts->filter(function($contract) use ($jobId) {
+                        return $contract->job_id == $jobId;
+                    })->count() > 0;
+                
+                // If no tasks exist yet, create a placeholder task
+                if (!$hasExistingTasks) {
+                    $job = is_object($application) ? $application->job : $application['job'];
+                    $client = is_object($application) ? ($job->client ?? null) : ($job->client ?? null);
+                    
+                    // Only add if we have job and client information
+                    if ($job && $client) {
+                        $tasks->push([
+                            'id' => 'pending_' . $jobId,
+                            'title' => 'Initial Setup: ' . $job->title,
+                            'description' => 'Your application has been accepted. Tasks will be assigned to you soon.',
+                            'client' => $client->name,
+                            'status' => 'pending',
+                            'priority' => 'medium',
+                            'due_date' => now()->addDays(7),
+                            'progress' => 0
+                        ]);
+                    }
+                }
+            }
         }
         
         return view('job-seeker.tasks', compact('tasks', 'applications'));
@@ -402,67 +439,134 @@ class JobSeekerController extends Controller
     }
     
     /**
-     * Display the task workspace.
+     * Display the workspace for a specific task.
      *
-     * @param int $taskId
+     * @param string $taskId
      * @return \Illuminate\View\View
      */
     public function workspace($taskId)
     {
-        // For demo purposes, create a sample task
-        $task = [
-            'id' => $taskId,
-            'title' => 'Web Application Frontend Development',
-            'client' => 'TechCorp Solutions',
-            'description' => 'Develop a responsive frontend for a web application using React and Tailwind CSS. The application should include a dashboard, user profile, and settings pages.',
-            'requirements' => [
-                'Responsive design that works on mobile, tablet, and desktop',
-                'Dark mode implementation',
-                'Accessible according to WCAG 2.1 standards',
-                'Cross-browser compatibility',
-                'Optimized performance and loading times'
-            ],
-            'status' => 'in-progress',
-            'priority' => 'high',
-            'due_date' => now()->addDays(5)->format('Y-m-d'),
-            'progress' => 65,
-            'attachments' => [
-                [
-                    'name' => 'design_mockups.zip',
-                    'size' => '12MB',
-                    'type' => 'application/zip',
-                    'uploaded_at' => now()->subDays(7)->format('Y-m-d')
-                ],
-                [
-                    'name' => 'project_requirements.pdf',
-                    'size' => '2.3MB',
-                    'type' => 'application/pdf',
-                    'uploaded_at' => now()->subDays(7)->format('Y-m-d')
-                ]
-            ],
-            'messages' => [
-                [
-                    'sender' => 'John Smith',
-                    'sender_type' => 'client',
-                    'message' => 'How is progress on the dashboard page coming along?',
-                    'timestamp' => now()->subDays(2)->format('Y-m-d H:i:s')
-                ],
-                [
-                    'sender' => 'You',
-                    'sender_type' => 'job-seeker',
-                    'message' => 'It\'s going well. I\'ve completed about 70% of the dashboard components. I expect to have a demo ready by tomorrow.',
-                    'timestamp' => now()->subDays(2)->addHours(1)->format('Y-m-d H:i:s')
-                ],
-                [
-                    'sender' => 'John Smith',
-                    'sender_type' => 'client',
-                    'message' => 'Great! Looking forward to seeing it.',
-                    'timestamp' => now()->subDays(2)->addHours(2)->format('Y-m-d H:i:s')
-                ]
-            ]
-        ];
+        $user = Auth::user();
         
-        return view('job-seeker.workspace', compact('task'));
+        // Determine if taskId is a pending placeholder or a real task ID
+        if (strpos($taskId, 'pending_') === 0) {
+            // This is a pending setup task based on an accepted application
+            $jobId = substr($taskId, 8); // Remove 'pending_' prefix
+            
+            // Get the application for this job
+            $application = \App\Models\Application::where('user_id', $user->id)
+                ->whereHas('jobPost', function($query) use ($jobId) {
+                    $query->where('id', $jobId);
+                })
+                ->with(['jobPost', 'jobPost.client'])
+                ->first();
+            
+            if (!$application) {
+                return redirect()->route('jobseeker.tasks')
+                    ->with('error', 'Task not found or you do not have access to this task.');
+            }
+            
+            // Construct a pending task template
+            $task = [
+                'id' => $taskId,
+                'title' => 'Initial Setup: ' . $application->jobPost->title,
+                'description' => $application->jobPost->description,
+                'client' => $application->jobPost->client->name,
+                'client_id' => $application->jobPost->client->id,
+                'status' => 'pending',
+                'priority' => 'medium',
+                'due_date' => now()->addDays(7),
+                'progress' => 0,
+                'is_pending_setup' => true,
+            ];
+            
+            $client = $application->jobPost->client;
+            
+            // Get messages between the job seeker and client
+            $messages = Message::where(function($query) use ($user, $client) {
+                $query->where('sender_id', $user->id)
+                      ->where('receiver_id', $client->id);
+            })->orWhere(function($query) use ($user, $client) {
+                $query->where('sender_id', $client->id)
+                      ->where('receiver_id', $user->id);
+            })
+            ->orderBy('created_at')
+            ->get();
+            
+            return view('job-seeker.workspace', compact('task', 'client', 'messages'));
+        } else {
+            // This is a real task with a numeric ID
+            $task = Task::where('id', $taskId)
+                ->where('job_seeker_id', $user->id)
+                ->first();
+            
+            if (!$task) {
+                // If not found, check if this is a task recently created by a client
+                $task = Task::where('id', $taskId)
+                    ->where('job_seeker_id', $user->id)
+                    ->first();
+                
+                if (!$task) {
+                    return redirect()->route('jobseeker.tasks')
+                        ->with('error', 'Task not found or you do not have access to this task.');
+                }
+            }
+            
+            // Get the client
+            $client = User::find($task->client_id);
+            
+            if (!$client) {
+                return redirect()->route('jobseeker.tasks')
+                    ->with('error', 'Client information not found for this task.');
+            }
+            
+            // Transform to match view expectations
+            $taskData = [
+                'id' => $task->id,
+                'title' => $task->title,
+                'description' => $task->description,
+                'client' => $client->name,
+                'client_id' => $client->id,
+                'status' => $task->status,
+                'priority' => $task->priority,
+                'due_date' => $task->due_date,
+                'progress' => $task->progress ?? 0,
+                'payment' => $task->payment,
+                'contract_details' => $task->contract_id ? 'Part of contract #' . $task->contract_id : 'Direct assignment',
+            ];
+            
+            // Get task attachments
+            if ($task->attachments()->count() > 0) {
+                $taskData['attachments'] = $task->attachments->map(function($attachment) {
+                    return [
+                        'name' => $attachment->file_name,
+                        'url' => $attachment->file_url,
+                    ];
+                });
+            }
+            
+            // Get previous submissions
+            $submissions = Submission::where('task_id', $task->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+            
+            if ($submissions->count() > 0) {
+                $taskData['submissions'] = $submissions;
+            }
+            
+            // Get messages between the job seeker and client
+            $messages = Message::where(function($query) use ($user, $client) {
+                $query->where('sender_id', $user->id)
+                      ->where('receiver_id', $client->id);
+            })->orWhere(function($query) use ($user, $client) {
+                $query->where('sender_id', $client->id)
+                      ->where('receiver_id', $user->id);
+            })
+            ->orderBy('created_at')
+            ->get();
+            
+            return view('job-seeker.workspace', compact('taskData', 'client', 'messages'));
+        }
     }
     
     /**
@@ -474,15 +578,238 @@ class JobSeekerController extends Controller
      */
     public function submitWork(Request $request, $taskId)
     {
-        $request->validate([
-            'work_description' => 'required|string|min:10',
-            'hours_worked' => 'required|numeric|min:0.5',
-            'work_file' => 'nullable|file|max:10240', // 10MB max
+        // Validate input
+        $validated = $request->validate([
+            'submission_type' => 'required|in:file,link,text',
+            'work_file' => 'required_if:submission_type,file|file|max:10240|mimes:pdf,doc,docx,zip,rar,jpg,jpeg,png',
+            'work_link' => 'required_if:submission_type,link|url',
+            'work_text' => 'required_if:submission_type,text',
+            'comment' => 'nullable|string|max:1000',
         ]);
         
-        // Process the submission (in a real app, this would save to the database)
+        $user = Auth::user();
         
-        return redirect()->route('jobseeker.tasks')
-            ->with('success', 'Work submitted successfully!');
+        // Log submission data for debugging
+        \Log::info('Submission data received:', [
+            'submission_type' => $request->submission_type,
+            'has_file' => $request->hasFile('work_file'),
+            'work_link' => $request->work_link,
+            'work_text' => $request->work_text,
+            'comment' => $request->comment
+        ]);
+        
+        // Check if the task ID is valid
+        if (strpos($taskId, 'pending_') === 0) {
+            return redirect()->back()->with('error', 'Cannot submit work for a pending task. Please wait for the client to assign specific tasks.');
+        }
+        
+        // Find the task
+        $task = Task::where('id', $taskId)
+            ->where('job_seeker_id', $user->id)
+            ->first();
+        
+        if (!$task) {
+            return redirect()->route('jobseeker.tasks')
+                ->with('error', 'Task not found or you do not have access to this task.');
+        }
+        
+        // Create a new submission
+        $submission = new Submission();
+        $submission->task_id = $task->id;
+        $submission->user_id = $user->id;
+        $submission->submission_type = $request->submission_type;
+        $submission->description = $request->comment ?? 'No description provided';
+        $submission->status = 'pending';
+        $submission->hours_worked = 0;
+        
+        // Handle the submission based on type
+        if ($request->submission_type === 'file' && $request->hasFile('work_file')) {
+            $file = $request->file('work_file');
+            
+            // Log file details
+            \Log::info('File details', [
+                'original_name' => $file->getClientOriginalName(),
+                'mime_type' => $file->getClientMimeType(),
+                'size' => $file->getSize(),
+                'error' => $file->getError()
+            ]);
+            
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            try {
+                $filePath = $file->storeAs('submissions/' . $task->id, $fileName, 'public');
+                
+                \Log::info('File stored successfully', [
+                    'path' => $filePath
+                ]);
+                
+                $submission->file_name = $file->getClientOriginalName();
+                $submission->file_path = $filePath;
+                $submission->file_url = asset('storage/' . $filePath);
+                $submission->file_type = $file->getClientMimeType();
+                $submission->file_size = $file->getSize();
+            } catch (\Exception $e) {
+                \Log::error('File upload error', [
+                    'error' => $e->getMessage()
+                ]);
+                return redirect()->back()->with('error', 'File upload failed: ' . $e->getMessage());
+            }
+        } elseif ($request->submission_type === 'link') {
+            $submission->external_link = $request->work_link;
+        } elseif ($request->submission_type === 'text') {
+            $submission->submission_text = $request->work_text;
+        } else {
+            // Log error if we reach this point
+            \Log::error('Invalid submission type or missing required data', [
+                'submission_type' => $request->submission_type,
+                'has_file' => $request->hasFile('work_file'),
+            ]);
+            
+            return redirect()->back()->with('error', 'Invalid submission. Please make sure to provide the required ' . $request->submission_type . ' data.');
+        }
+        
+        $submission->save();
+        
+        // Update task status if it was pending
+        if ($task->status === 'pending') {
+            $task->status = 'in_progress';
+            $task->save();
+        }
+        
+        // Send notification to client
+        try {
+            $client = User::find($task->client_id);
+            if ($client) {
+                // Create a message to notify the client
+                Message::create([
+                    'sender_id' => $user->id,
+                    'receiver_id' => $client->id,
+                    'task_id' => $task->id,
+                    'content' => 'I have submitted my work for review. Please check the submission.',
+                    'is_read' => false,
+                ]);
+                
+                // Send email notification
+                \Mail::to($client->email)->send(new \App\Mail\SubmissionReceivedMail($submission, $task, $user, $client));
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to send submission notification: ' . $e->getMessage());
+        }
+        
+        return redirect()->back()->with('success', 'Your work has been submitted successfully.');
+    }
+    
+    /**
+     * Send a message to a client about a task.
+     *
+     * @param Request $request
+     * @param int $taskId
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function sendMessage(Request $request, $taskId)
+    {
+        // Validate input
+        $validated = $request->validate([
+            'message' => 'required|string|max:1000',
+        ]);
+        
+        $user = Auth::user();
+        
+        // Check if the task ID is valid
+        if (strpos($taskId, 'pending_') === 0) {
+            // This is a pending setup task, we'll store the message without a task ID
+            $message = new Message();
+            $message->sender_id = $user->id;
+            $message->receiver_id = $request->recipient_id;
+            $message->content = $request->message;
+            $message->save();
+            
+            return redirect()->back()->with('success', 'Your message has been sent.');
+        }
+        
+        // Find the task
+        $task = Task::where('id', $taskId)
+            ->where('job_seeker_id', $user->id)
+            ->first();
+        
+        if (!$task) {
+            return redirect()->route('jobseeker.tasks')
+                ->with('error', 'Task not found or you do not have access to this task.');
+        }
+        
+        // Get the client
+        $client = User::find($task->client_id);
+        
+        if (!$client) {
+            return redirect()->route('jobseeker.tasks')
+                ->with('error', 'Client information not found for this task.');
+        }
+        
+        // Create a new message
+        $message = new Message();
+        $message->sender_id = $user->id;
+        $message->receiver_id = $client->id;
+        $message->task_id = $task->id;
+        $message->content = $request->message;
+        $message->is_read = false;
+        $message->save();
+        
+        // Send email notification to client
+        try {
+            \Mail::to($client->email)->send(new \App\Mail\NewMessageMail($message, $task, $user, $client));
+        } catch (\Exception $e) {
+            \Log::error('Failed to send message notification email: ' . $e->getMessage());
+        }
+        
+        return redirect()->back()->with('success', 'Your message has been sent.');
+    }
+    
+    /**
+     * Mark a task as completed.
+     *
+     * @param int $taskId
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function completeTask($taskId)
+    {
+        $user = Auth::user();
+        
+        // Find the task
+        $task = Task::where('id', $taskId)
+            ->where('job_seeker_id', $user->id)
+            ->first();
+        
+        if (!$task) {
+            return redirect()->route('jobseeker.tasks')
+                ->with('error', 'Task not found or you do not have access to this task.');
+        }
+        
+        // Update the task status to completed
+        $task->status = 'completed';
+        $task->progress = 100;
+        $task->save();
+        
+        // Notify the client
+        try {
+            $client = User::find($task->client_id);
+            if ($client) {
+                // Create a message to notify the client
+                Message::create([
+                    'sender_id' => $user->id,
+                    'receiver_id' => $client->id,
+                    'task_id' => $task->id,
+                    'content' => 'I have marked this task as completed.',
+                    'is_read' => false,
+                ]);
+                
+                // Send email notification
+                if (class_exists(\App\Mail\TaskCompletedMail::class)) {
+                    \Mail::to($client->email)->send(new \App\Mail\TaskCompletedMail($task, $user, $client));
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to send task completion notification: ' . $e->getMessage());
+        }
+        
+        return redirect()->back()->with('success', 'Task has been marked as completed.');
     }
 } 
