@@ -16,12 +16,20 @@ class Transaction extends Model
      */
     protected $fillable = [
         'wallet_id',
+        'task_id',
         'amount',
         'type',
-        'status',
         'description',
+        'status',
         'reference',
+        'balance_before',
+        'balance_after',
         'meta',
+        'currency',
+        'payment_method',
+        'payment_provider',
+        'transaction_id',
+        'payment_details',
     ];
 
     /**
@@ -31,10 +39,36 @@ class Transaction extends Model
      */
     protected $casts = [
         'amount' => 'decimal:2',
-        'meta' => 'array',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'balance_before' => 'decimal:2',
+        'balance_after' => 'decimal:2',
+        'payment_details' => 'array',
     ];
+
+    /**
+     * The attributes that should be set to default values.
+     *
+     * @var array
+     */
+    protected $attributes = [
+        'status' => 'pending',
+        'currency' => 'USD',
+    ];
+
+    /**
+     * Transaction types
+     */
+    const TYPE_DEPOSIT = 'deposit';
+    const TYPE_WITHDRAWAL = 'withdrawal';
+    const TYPE_PAYMENT = 'payment';
+    const TYPE_REFUND = 'refund';
+
+    /**
+     * Transaction statuses
+     */
+    const STATUS_PENDING = 'pending';
+    const STATUS_COMPLETED = 'completed';
+    const STATUS_FAILED = 'failed';
+    const STATUS_CANCELLED = 'cancelled';
 
     /**
      * Get the wallet that owns the transaction.
@@ -43,28 +77,45 @@ class Transaction extends Model
     {
         return $this->belongsTo(Wallet::class);
     }
-    
+
     /**
-     * Get the user associated with the transaction via wallet.
+     * Get the task that the transaction belongs to.
+     */
+    public function task()
+    {
+        return $this->belongsTo(Task::class);
+    }
+
+    /**
+     * Get the user that owns the transaction.
      */
     public function user()
     {
-        return $this->wallet->user();
+        return $this->belongsTo(User::class);
     }
-    
+
     /**
-     * Scope for credit transactions (income)
+     * Scope a query to only include transactions of a specific type.
      */
-    public function scopeCredit($query)
+    public function scopeOfType($query, $type)
     {
-        return $query->whereIn('type', ['payment', 'deposit', 'refund']);
+        return $query->where('type', $type);
     }
-    
+
     /**
-     * Scope for debit transactions (expenses)
+     * Format amount with currency symbol.
      */
-    public function scopeDebit($query)
+    public function getFormattedAmountAttribute()
     {
-        return $query->whereIn('type', ['withdrawal', 'fee', 'purchase']);
+        $currency = $this->currency ?? 'USD';
+        
+        switch ($currency) {
+            case 'USD':
+                return '$' . number_format(abs($this->amount), 2);
+            case 'KSH':
+                return 'KSh' . number_format(abs($this->amount), 2);
+            default:
+                return '$' . number_format(abs($this->amount), 2);
+        }
     }
 } 

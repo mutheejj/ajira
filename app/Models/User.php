@@ -193,4 +193,45 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasOne(Profile::class);
     }
+
+    /**
+     * Get the wallet associated with the user.
+     */
+    public function wallet()
+    {
+        return $this->hasOne(Wallet::class);
+    }
+
+    /**
+     * Get or create a wallet for the user.
+     */
+    public function getWalletAttribute()
+    {
+        $wallet = $this->wallet()->first();
+        
+        if (!$wallet) {
+            $wallet = $this->wallet()->create([
+                'balance' => 200.00, // Initial balance of 200
+                'currency' => 'USD',
+                'status' => 'active',
+            ]);
+        }
+        
+        return $wallet;
+    }
+
+    /**
+     * Get all transactions for the user.
+     */
+    public function transactions()
+    {
+        return $this->hasManyThrough(
+            Transaction::class,
+            Wallet::class,
+            'user_id',
+            'wallet_id',
+            'id',
+            'id'
+        );
+    }
 }
