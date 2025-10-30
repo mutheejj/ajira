@@ -308,7 +308,7 @@
                     <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
                         <h3 class="text-md font-medium text-gray-900 dark:text-white mb-3">Email Verification</h3>
                         <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Your email address is not verified. Please verify your email to unlock all features.</p>
-                        <form action="{{ route('verification.send') }}" method="POST">
+                        <form action="{{ route('verification.resend') }}" method="POST">
                             @csrf
                             <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                                 Resend Verification Email
@@ -348,7 +348,7 @@
                                                     </p>
                                                 </div>
                                                 <div class="mt-4">
-                                                    <form action="{{ route('account.delete') }}" method="POST" id="delete-account-form">
+                                                    <form action="{{ route('settings.delete') }}" method="POST" id="delete-account-form">
                                                         @csrf
                                                         @method('DELETE')
                                                         <div>
