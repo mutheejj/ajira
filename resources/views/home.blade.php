@@ -4,8 +4,13 @@
 
 @section('content')
     <!-- Hero Section -->
-    <section class="relative py-20 bg-gradient-to-r from-blue-600 to-blue-800 text-white">
-        <div class="container mx-auto px-4">
+    <section class="relative py-20 text-white overflow-hidden">
+        <!-- Background video -->
+        <video class="absolute inset-0 w-full h-full object-cover" src="{{ asset('video.mp4') }}" autoplay muted loop playsinline></video>
+        <!-- Blue overlay for readability -->
+        <div class="absolute inset-0 bg-gradient-to-r from-blue-900/40 to-blue-900/70"></div>
+
+        <div class="container mx-auto px-4 relative z-10">
             <div class="max-w-3xl">
                 <h1 class="text-4xl md:text-5xl font-bold mb-6">Find Global Talent or Your Next Job Opportunity</h1>
                 <p class="text-xl mb-8">Connect with top professionals worldwide or discover your next career move on Ajira Global.</p>
@@ -21,8 +26,8 @@
             </div>
         </div>
         
-        <!-- Decorative Element -->
-        <div class="hidden lg:block absolute right-0 bottom-0 w-1/3 h-full">
+        <!-- Decorative Element (kept above overlay) -->
+        <div class="hidden lg:block absolute right-0 bottom-0 w-1/3 h-full pointer-events-none z-10">
             <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="absolute inset-0 h-full w-full text-white opacity-10">
                 <polygon points="0,0 100,0 100,100" fill="currentColor"></polygon>
             </svg>
