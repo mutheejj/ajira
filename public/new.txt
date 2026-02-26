@@ -1,0 +1,29 @@
+Ajira Global is a full‑stack freelance marketplace built with Laravel that connects clients to global talent. It provides end‑to‑end workflows for posting jobs, discovering opportunities, applying, hiring, collaborating, paying, and tracking work—wrapped in a clean, responsive UI built with Blade + Tailwind CSS.
+
+Core capabilities
+• Client features: create and manage job posts, review applications, hire talent, manage contracts, view reports, and handle billing. Clients have a dedicated dashboard, profile, and settings pages.
+• Job‑seeker features: browse and search jobs, save jobs, apply with attachments, track application status, manage a portfolio, tasks and worklogs, and view earnings. Job seekers get role‑based dashboards and tools to manage their profiles and submissions.
+• Messaging + notifications: contextual messaging between clients and freelancers, activity emails (application submitted/updated, messages, feedback, task assignments). Outbound mail is configured for SMTP and can run with Gmail App Passwords.
+• Payments: M‑Pesa integration (sandbox ready) for deposits/withdrawals and contract payments, including callback/timeout/result URLs.
+• Admin tools: review/approve jobs and applications, manage users, and access platform statistics.
+
+Architecture + tech
+• Backend: Laravel 9 (PHP 8.3), MVC structure, controllers for pages/jobs/applications/settings, policies/middleware for roles (admin, client, job‑seeker), queues optional, file storage via Laravel Filesystem.
+• Frontend: Blade templates and Tailwind for a modern, accessible interface; reusable layouts (`layouts.app`) and partials (header/footer). A video hero background is supported on the homepage.
+• Database: MySQL with migrations, seeders (categories/skills), and Eloquent relationships (users, job posts, applications, contracts, tasks, worklogs, transactions).
+• Email: Laravel Mailables for verification, test messages, application updates, and notifications. Environment supports Gmail via app passwords.
+• Security: Laravel auth with email verification, CSRF protection, route middleware, and role‑based access control.
+
+Notable pages + routes
+• Public marketing and resource pages (How to Hire, How to Find Work, Talent Marketplace, Project Catalog, Help & Support, Blog, Legal pages, etc.).
+• Feature pages for both audiences (Direct Contracts, Worldwide Jobs, Freelancer Plus, Leadership, Investor Relations, Careers, Press, Partners, Trust & Safety, Modern Slavery Statement).
+• Auth flows: register/login, password reset, email verification (resend verification supported).
+
+Developer notes
+• Environment: `.env` (or `env copy`) configures app, database, mailer, and M‑Pesa keys.
+• Commands: `php artisan migrate --seed`, `php artisan serve` for local dev; use `php artisan config:clear && php artisan route:clear && php artisan view:clear` after env or route changes.
+• Assets: public assets (including `public/video.mp4`) are served directly; storage symlink can be enabled via `php artisan storage:link`.
+
+Goal
+Deliver a reliable marketplace experience for hiring and freelancing with a strong focus on usability, security, and payments integration suited to the African market and global use cases.
+
